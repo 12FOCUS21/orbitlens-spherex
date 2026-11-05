@@ -48,6 +48,27 @@ def arguments() -> argparse.Namespace:
     return args
 
 
+def parse_sia_csv(text: str, collection: str) -> list[dict]:
+    reader = csv.DictReader(io.StringIO(text.lstrip("\ufeff")), strict=True)
+    if not reader.fieldnames or "access_url" not in reader.fieldnames:
+        raise ValueError(f"Respuesta SIA no es el CSV esperado: {text[:200]}")
+    if len(set(reader.fieldnames)) != len(reader.fieldnames):
+        raise ValueError("Cabecera CSV con nombres de columnas duplicados.")
+    rows = []
+    for row in reader:
+        # DictReader usa None como clave si hay más valores que columnas.
+        # Tolerar comas finales vacías sin ocultar valores sin cabecera.
+        extra = row.pop(None, [])
+        if any(value.strip() for value in extra):
+            raise ValueError(
+                f"CSV {collection}, línea {reader.line_num}: campos adicionales con datos "
+                "sin cabecera. Revisar la respuesta original guardada.")
+        if any(value is None for value in row.values()):
+            raise ValueError(f"CSV {collection}, línea {reader.line_num}: faltan campos.")
+        rows.append(dict(row, collection=collection))
+    return rows
+
+
 def query_collection(client: httpx.Client, collection: str, args: argparse.Namespace) -> list[dict]:
     # Un radio pequeño prioriza imágenes que contienen el centro solicitado.
     params = {"COLLECTION": collection, "POS": f"circle {args.ra} {args.dec} 0.001",
@@ -56,14 +77,13 @@ def query_collection(client: httpx.Client, collection: str, args: argparse.Names
         try:
             response = client.get(SIA_URL, params=params)
             response.raise_for_status()
-            reader = csv.DictReader(io.StringIO(response.text.lstrip("\ufeff")))
-            if not reader.fieldnames or "access_url" not in reader.fieldnames:
-                raise ValueError(f"Respuesta SIA no es el CSV esperado: {response.text[:200]}")
-            rows = [dict(row, collection=collection) for row in reader]
+            # Conservar la respuesta exacta para diagnosticar cambios de formato.
+            (args.output / f"query_{collection}.csv").write_bytes(response.content)
+            rows = parse_sia_csv(response.text, collection)
             print(f"{collection}: {len(rows)} filas" +
                   (" (MAXREC alcanzado; lista posiblemente truncada)" if len(rows) >= args.maxrec else ""))
             return rows
-        except (httpx.HTTPError, ValueError):
+        except (httpx.HTTPError, ValueError, csv.Error):
             if attempt == 2:
                 raise
             time.sleep(2 ** attempt)
@@ -163,7 +183,7 @@ def main() -> int:
         for collection in COLLECTIONS:
             try:
                 rows.extend(query_collection(client, collection, args))
-            except (httpx.HTTPError, ValueError) as exc:
+            except (httpx.HTTPError, ValueError, csv.Error) as exc:
                 errors[collection] = str(exc)
                 print(f"AVISO: {collection}: {exc}", file=sys.stderr)
         rows.sort(key=mjd_key)

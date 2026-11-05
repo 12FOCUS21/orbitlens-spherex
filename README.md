@@ -23,6 +23,7 @@ con SIMBAD y de considerar el movimiento propio para cada época.
 Guarda en `data/raw/day1/` (excluido de los archivos de código):
 
 - `query_results.csv`: metadatos devueltos por las cuatro consultas.
+- `query_spherex_*.csv`: respuestas originales para diagnosticar el formato CSV.
 - `cutout.fits`: recorte original, con sus extensiones.
 - `preview.png`: imagen exploratoria de IMAGE, con percentiles 1–99 y asinh.
 - `inspection.json`: procedencia, parámetros, errores por colección, estructura
