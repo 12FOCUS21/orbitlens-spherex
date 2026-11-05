@@ -1,8 +1,65 @@
-# orbitlens-spherex
+# OrbitLens — SPHEREx Time Atlas
 
-Explorador temporal de imágenes SPHEREx para Planet X and SPHEREx.
+Explorador temporal de imágenes SPHEREx para el reto **Planet X and SPHEREx**
+de NASA Space Apps Challenge 2026.
 
-## Día 1: prueba de datos
+## La propuesta
+
+**OrbitLens** será una herramienta web pública para explorar una región del cielo
+a través del tiempo. Permitirá ingresar coordenadas RA/Dec en formato decimal o
+sexagesimal, o buscar un objeto por nombre, y reproducir imágenes de SPHEREx como
+una secuencia temporal para explorar posibles objetos en movimiento.
+
+El alcance previsto incluye comparación de épocas, modos de diferencia y apilado,
+información espectral, superposición de catálogos Gaia/WISE, enlaces compartibles
+y metadatos de calidad y procedencia. Las funciones se incorporarán por etapas;
+la web todavía no está implementada.
+
+El producto no debe afirmar el descubrimiento de Planet X. Su valor es hacer
+visibles y comprensibles posibles cambios, con evidencia y limitaciones claras,
+para público general, docentes y aficionados.
+
+[Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
+· [Datos SPHEREx](https://science.nasa.gov/open-science/spherex-universe-map/)
+
+## Estado
+
+**Etapa 1: prueba de datos completada.** Se validó el acceso a las cuatro
+colecciones, se descargó un recorte FITS real y se generó una PNG. Las cuatro
+pruebas de regresión del lector de respuestas pasan.
+
+El recorte validado corresponde a QR3/D6, con IMAGE de 49 × 49 píxeles y unidades
+MJy/sr. El archivo FITS completo del recorte ocupa 3,985,920 bytes e incluye
+extensiones auxiliares. Falta verificar la identidad del objeto en la imagen e
+interpretar los bits de FLAGS antes de aplicar máscaras de calidad.
+
+La siguiente etapa es el pipeline científico: secuencia de recortes del mismo
+detector, reproyección a un WCS común y estiramiento global.
+
+## Documentación del proyecto
+
+[PLAN.md](PLAN.md) contiene el plan de trabajo vigente y los resultados
+verificados. Los documentos iniciales siguientes conservan el contexto de
+planificación; sus propuestas de alcance, arquitectura y cronograma deben
+contrastarse con el plan vigente.
+
+| Documento | Contenido |
+| --- | --- |
+| [00-project-charter.md](00-project-charter.md) | problema, usuarios, métricas y responsabilidades |
+| [01-architecture-and-data.md](01-architecture-and-data.md) | arquitectura, datos, ciencia y riesgos |
+| [02-48h-runbook.md](02-48h-runbook.md) | cronograma de hackathon y punto de corte |
+| [03-git-workflow.md](03-git-workflow.md) | colaboración, ramas, PR y trazabilidad |
+| [04-submission-checklist.md](04-submission-checklist.md) | entrega, demo, referencias y presentación |
+
+## Pendientes de preparación y entrega
+
+- Confirmar las reglas del evento local sobre trabajo previo y declarar con
+  transparencia la planificación y el desarrollo realizados antes del hackathon.
+- Concretar el despliegue público y la visibilidad del repositorio según PLAN.md.
+- Validar los objetos de demostración y preparar presets precalculados con
+  atribución, para que la demo tenga un respaldo independiente de IRSA en vivo.
+
+## Etapa 1: prueba de datos
 
 En PowerShell, con Python 3.11 o posterior instalado:
 
