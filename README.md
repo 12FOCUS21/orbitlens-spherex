@@ -10,14 +10,19 @@ a través del tiempo. Permitirá ingresar coordenadas RA/Dec en formato decimal 
 sexagesimal, o buscar un objeto por nombre, y reproducir imágenes de SPHEREx como
 una secuencia temporal para explorar posibles objetos en movimiento.
 
-El alcance previsto incluye comparación de épocas, modos de diferencia y apilado,
-información espectral, superposición de catálogos Gaia/WISE, enlaces compartibles
-y metadatos de calidad y procedencia. Las funciones se incorporarán por etapas;
-la web todavía no está implementada.
+En vez de mostrar una imagen estática, permitirá alternar épocas, superponerlas
+y observar la diferencia visual entre ellas. El producto convertirá 102 bandas
+infrarrojas de SPHEREx en tres recorridos claros: **cambio temporal**,
+**color infrarrojo** y **evidencia científica**.
+
+El alcance previsto incluye comparación de épocas, modos *blink*, deslizador y
+diferencia, apilado, información espectral, superposición de catálogos Gaia/WISE,
+enlaces compartibles y metadatos de calidad y procedencia. Las funciones se
+incorporarán por etapas; la web todavía no está implementada.
 
 El producto no debe afirmar el descubrimiento de Planet X. Su valor es hacer
-visibles y comprensibles posibles cambios, con evidencia y limitaciones claras,
-para público general, docentes y aficionados.
+detectables, visibles y comprensibles posibles cambios, con evidencia y
+limitaciones claras, para público general, docentes y aficionados.
 
 [Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
 · [Datos SPHEREx](https://science.nasa.gov/open-science/spherex-universe-map/)
@@ -55,9 +60,14 @@ contrastarse con el plan vigente.
 
 - Confirmar las reglas del evento local sobre trabajo previo y declarar con
   transparencia la planificación y el desarrollo realizados antes del hackathon.
-- Concretar el despliegue público y la visibilidad del repositorio según PLAN.md.
-- Validar los objetos de demostración y preparar presets precalculados con
-  atribución, para que la demo tenga un respaldo independiente de IRSA en vivo.
+  Este repositorio contiene planificación; el código original y la demo final
+  deben realizarse de acuerdo con las reglas vigentes.
+- Concretar el despliegue público y la visibilidad del repositorio. Para una
+  propuesta Space Apps, la recomendación es un repositorio público bajo licencia
+  MIT una vez confirmado el cumplimiento de las condiciones 2026.
+- Elegir las regiones de la demo a partir de la prueba de acceso a IRSA y
+  validar los objetos de demostración; mantener siempre un paquete reducido de
+  respaldo con atribución clara.
 
 ## Etapa 1: prueba de datos
 
