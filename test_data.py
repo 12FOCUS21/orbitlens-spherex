@@ -16,10 +16,12 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from xml.etree import ElementTree
 
 import httpx
 import numpy as np
 from astropy.io import fits
+from astropy.io.votable import parse_single_table
 from astropy.time import Time
 from astropy.wcs import WCS
 from PIL import Image
@@ -48,38 +50,47 @@ def arguments() -> argparse.Namespace:
     return args
 
 
-def parse_sia_csv(text: str, collection: str) -> list[dict]:
-    reader = csv.DictReader(io.StringIO(text.lstrip("\ufeff")), strict=True)
-    if not reader.fieldnames or "access_url" not in reader.fieldnames:
-        raise ValueError(f"Respuesta SIA no es el CSV esperado: {text[:200]}")
-    if len(set(reader.fieldnames)) != len(reader.fieldnames):
-        raise ValueError("Cabecera CSV con nombres de columnas duplicados.")
-    rows = []
-    for row in reader:
-        # DictReader usa None como clave si hay más valores que columnas.
-        # Tolerar comas finales vacías sin ocultar valores sin cabecera.
-        extra = row.pop(None, [])
-        if any(value.strip() for value in extra):
-            raise ValueError(
-                f"CSV {collection}, línea {reader.line_num}: campos adicionales con datos "
-                "sin cabecera. Revisar la respuesta original guardada.")
-        if any(value is None for value in row.values()):
-            raise ValueError(f"CSV {collection}, línea {reader.line_num}: faltan campos.")
-        rows.append(dict(row, collection=collection))
-    return rows
+def parse_sia_votable(content: bytes, collection: str) -> list[dict]:
+    # IRSA puede devolver cloud_access como JSON sin escapar en CSV.
+    # VOTable conserva los límites de cada campo, incluidas las comas del JSON.
+    try:
+        root = ElementTree.fromstring(content)
+    except ElementTree.ParseError as exc:
+        raise ValueError("Respuesta SIA no es XML VOTable válido.") from exc
+    for info in root.iter():
+        if info.tag.rsplit("}", 1)[-1] == "INFO" and info.get("name") == "QUERY_STATUS":
+            status = info.get("value", "").upper()
+            if status == "ERROR":
+                raise ValueError(f"SIA {collection}: {''.join(info.itertext()).strip()}")
+            if status == "OVERFLOW":
+                print(f"AVISO: {collection}: IRSA indica resultados truncados.", file=sys.stderr)
+    table = parse_single_table(io.BytesIO(content)).to_table(use_names_over_ids=True)
+    if "access_url" not in table.colnames:
+        raise ValueError("VOTable SIA sin columna access_url.")
+
+    def text_value(value) -> str:
+        if np.ma.is_masked(value):
+            return ""
+        if isinstance(value, bytes):
+            return value.decode("utf-8")
+        return str(value)
+
+    # Mantener el contrato de cadenas del CSV local y del informe JSON.
+    return [dict({name: text_value(row[name]) for name in table.colnames},
+                 collection=collection) for row in table]
 
 
 def query_collection(client: httpx.Client, collection: str, args: argparse.Namespace) -> list[dict]:
     # Un radio pequeño prioriza imágenes que contienen el centro solicitado.
     params = {"COLLECTION": collection, "POS": f"circle {args.ra} {args.dec} 0.001",
-              "RESPONSEFORMAT": "CSV", "MAXREC": args.maxrec}
+              "RESPONSEFORMAT": "VOTABLE", "MAXREC": args.maxrec}
     for attempt in range(3):
         try:
             response = client.get(SIA_URL, params=params)
             response.raise_for_status()
             # Conservar la respuesta exacta para diagnosticar cambios de formato.
-            (args.output / f"query_{collection}.csv").write_bytes(response.content)
-            rows = parse_sia_csv(response.text, collection)
+            (args.output / f"query_{collection}.vot").write_bytes(response.content)
+            rows = parse_sia_votable(response.content, collection)
             print(f"{collection}: {len(rows)} filas" +
                   (" (MAXREC alcanzado; lista posiblemente truncada)" if len(rows) >= args.maxrec else ""))
             return rows
