@@ -23,7 +23,7 @@ con SIMBAD y de considerar el movimiento propio para cada época.
 Guarda en `data/raw/day1/` (excluido de los archivos de código):
 
 - `query_results.csv`: metadatos devueltos por las cuatro consultas.
-- `query_spherex_*.csv`: respuestas originales para diagnosticar el formato CSV.
+- `query_spherex_*.vot`: respuestas VOTable originales de IRSA.
 - `cutout.fits`: recorte original, con sus extensiones.
 - `preview.png`: imagen exploratoria de IMAGE, con percentiles 1–99 y asinh.
 - `inspection.json`: procedencia, parámetros, errores por colección, estructura
@@ -39,6 +39,18 @@ defecto); no se interpreta como un inventario completo. Si falla una colección,
 se consultan las demás y el informe registra el error. Una respuesta vacía se
 distingue de una consulta fallida. Se prefiere QR3 para el recorte y se recurre a
 las otras colecciones cuando no hay candidatos allí.
+
+Se consulta SIA con `RESPONSEFORMAT=VOTABLE` y se lee con Astropy. En las
+respuestas CSV observadas, `cloud_access` contiene JSON con comas sin escapar;
+VOTable permite conservar ese campo sin desplazar el resto de columnas.
+El CSV local se genera con el escapado correcto mediante `csv.DictWriter`.
+Los antiguos `query_*.csv`, si existen, corresponden a intentos anteriores.
+
+Pruebas del lector de respuestas (sin acceder a IRSA):
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
 
 La PNG conserva los ejes del detector, con inversión vertical para mostrar el
 origen FITS abajo. No está reproyectada al norte ni tiene máscara de calidad
