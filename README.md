@@ -12,11 +12,17 @@ Pruebas y revisión manual: [STAGE6_QA.md](STAGE6_QA.md).
 
 ## Estado
 
-**Verificación local actual (2026-11-06): 72 pruebas Python pasan**, con 3 avisos;
+**Verificación local actual (2026-11-06): 76 pruebas Python pasan**, con 3 avisos;
 TypeScript y Vite compilan. Se han añadido 20 pruebas de regresión de errores.
 El frontend incorpora además 10 pruebas de enlaces y orden espectral:
 `npm.cmd --prefix frontend test` (Node.js 22.12+, sin dependencias nuevas).
 La verificación del proxy y de las cuotas por visitante en Render sigue pendiente.
+
+La Etapa 7 añade cuatro pruebas del smoke de entrega. Tras compilar el frontend,
+ejecuta `.\.venv\Scripts\python.exe verify_release.py`: verifica mediante HTTP local
+diez visitas concurrentes, el bundle y búsquedas repetidas sin consultar servicios
+externos ni modificar la caché original. Matriz de 15 casos y límites de esta
+comprobación en [STAGE7_QA.md](STAGE7_QA.md).
 
 **Etapas 1 y 2 completadas: acceso a datos y pipeline temporal.** Se generaron
 cinco secuencias reales de 12 frames con PNG, FITS alineados,

@@ -64,6 +64,8 @@ class ApiTests(unittest.TestCase):
                           frontend_root=self.root / "no-build", **kwargs)
 
     def test_decimal_and_sexagesimal_and_invalid_ranges(self):
+        self.assertEqual(parse_coordinates(0, 90), (0.0, 90.0))
+        self.assertEqual(parse_coordinates(0, -90), (0.0, -90.0))
         self.assertEqual(parse_coordinates("133.795", "-7.245"), (133.795, -7.245))
         ra, dec = parse_coordinates("08h55m10.831s", "-07d14m42.53s")
         self.assertAlmostEqual(ra, 133.7951291667, places=8)

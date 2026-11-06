@@ -7,10 +7,12 @@ Tras instalar las dependencias según README, ejecutar desde la raíz:
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests
 .\.venv\Scripts\python.exe verify_demo.py
+npm.cmd --prefix frontend run build
+.\.venv\Scripts\python.exe verify_release.py
 ```
 
 El 6 de noviembre de 2026 pasaron inicialmente 52 pruebas. Tras las correcciones
-de robustez pasan 72 pruebas Python y 10 pruebas frontend de enlaces y orden
+de robustez y el smoke de entrega pasan 76 pruebas Python y 10 pruebas frontend de enlaces y orden
 espectral. Estas últimas se ejecutan con `npm.cmd --prefix frontend test` y
 Node.js 22.12+. También pasa la verificación de los cinco ejemplos FITS del
 repositorio. En Barnard, intercambiar las imágenes 1 y 7 invierte el signo de la
@@ -25,6 +27,9 @@ Este párrafo registra la revisión previa incluida en el pull, no una repetici�
 de esas comprobaciones para los cambios actuales. La regresión manual de esta
 versión está pendiente en [STAGE6_QA.md](STAGE6_QA.md), igual que la comprobación
 de cuotas por visitante tras el proxy descrita en DEPLOYMENT.md.
+El smoke de `verify_release.py` cubre HTTP concurrente local y caché, sin ejecutar
+un navegador. La matriz de 15 casos y los tres ensayos pendientes están en
+[STAGE7_QA.md](STAGE7_QA.md).
 
 ## Ensayo y reparto para cinco integrantes
 
