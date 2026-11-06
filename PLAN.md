@@ -235,6 +235,13 @@ interrumpe constructores activos y retiene archivos recientes; por eso el presup
 no es un límite duro. Configuración y validación pública detalladas en DEPLOYMENT.md.
 
 ## ETAPA 5 — Modos de visualización
+- Implementación preparada en `analysis_modes.py`, endpoint de análisis y panel
+  React. Diferencia sobre FITS, media por época de hasta siete días y curva del
+  píxel central con null para máscaras. Compatibilidad espectral aproximada
+  comprobada entre todas las parejas. Decisiones en SCIENCE.md.
+- Frontend compilado; once pruebas nuevas preparadas (51 en total previstas).
+  Pendiente ejecución Python del usuario y QA real de STAGE5_QA.md. No cerrar
+  las casillas siguientes hasta esa validación.
 - [ ] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")
 - [ ] Modo Pila: suma de frames por época y por detector (mejora señal/ruido, lo que pide el enunciado)
 - [ ] Curva de luz (brillo vs. fecha del píxel central) — probar con RW Aurigae y R Draconis

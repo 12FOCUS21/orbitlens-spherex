@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { createRoot } from 'react-dom/client'
 import { api } from './api'
 import { Player } from './Player'
+import { Analysis } from './Analysis'
 import type { Job, Manifest, Preset } from './types'
 import './style.css'
 
@@ -97,6 +98,7 @@ function App() {
             {manifest.warnings?.map(warning => <p className="notice" key={warning}>{warning}</p>)}
             {manifest.frames.length > 0 && <>
               <Player key={job?.job_id} manifest={manifest} />
+              {job?.manifest_url && <Analysis key={`analysis-${job.job_id}`} manifest={manifest} manifestUrl={job.manifest_url} />}
               <p className="notice spectral">Mismo detector no implica misma longitud de onda. Cambios de brillo pueden depender de la banda observada. La longitud de onda indicada es aproximada.</p>
             </>}
             {truncated && <p className="notice">Una consulta alcanzó MAXREC. Esta secuencia es una muestra del archivo; no es un inventario completo.</p>}

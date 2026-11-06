@@ -29,6 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from coordinates import parse_coordinates
 from archive_config import COLLECTIONS
 from disk_cache import trim
+from analysis_modes import AnalysisInput, analyze
 from spherex_pipeline import PIPELINE_VERSION, PipelineConfig, build_sequence, fingerprint, write_json
 from targets import PRESETS, resolve_target
 
@@ -108,13 +109,15 @@ class JobManager:
         self.locks: dict[str, threading.Lock] = {}
         self.lock_guard = threading.Lock()
         self.maintenance = False
+        self.analysis_count = 0
+        self.analysis_owners: dict[str, int] = defaultdict(int)
         self.disk_bytes = 0
         self.disk_budget = int(os.environ.get("ORBITLENS_CACHE_BYTES", str(2 * 1024**3)))
         if self.disk_budget <= 0:
             raise ValueError("ORBITLENS_CACHE_BYTES debe ser positivo.")
 
     async def clean_disk(self):
-        if self.active or self.maintenance:
+        if self.active or self.maintenance or self.analysis_count:
             return
         self.maintenance = True
         try:
@@ -235,7 +238,7 @@ class JobManager:
         existing = self.active.get(key)
         if existing and ip in existing.owners:
             return self.status(existing)
-        if sum(ip in job.owners for job in self.active.values()) >= self.per_ip:
+        if self.analysis_owners.get(ip, 0) + sum(ip in job.owners for job in self.active.values()) >= self.per_ip:
             raise HTTPException(429, "Ya tienes dos búsquedas en curso. Espera a que terminen.",
                                 headers={"Retry-After": "5"})
         if existing:
@@ -381,6 +384,41 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
                  "fits_url": f"/api/results/{result_id}/aligned/{i}.fits"}
                  for i, frame in enumerate(source["frames"])]}
         return JSONResponse(value)
+
+    @app.post("/api/results/{result_id}/analysis")
+    async def analysis(result_id: str, body: AnalysisInput, request: Request):
+        path, source = result(result_id)
+        if manager.maintenance or manager.semaphore.locked():
+            raise HTTPException(429, "Servidor ocupado. Inténtalo en unos segundos.", headers={"Retry-After": "5"})
+        manager.prune()
+        ip = request.client.host if request.client else "unknown"
+        timestamps = manager.requests[ip]
+        if manager.analysis_owners.get(ip, 0) + sum(ip in job.owners for job in manager.active.values()) >= manager.per_ip:
+            raise HTTPException(429, "Ya tienes dos operaciones en curso.", headers={"Retry-After": "5"})
+        if len(timestamps) >= manager.per_minute:
+            raise HTTPException(429, "Demasiadas solicitudes; espera un minuto.", headers={"Retry-After": "60"})
+        timestamps.append(time.monotonic())
+        manager.analysis_count += 1
+        manager.analysis_owners[ip] += 1
+        try:
+            async with manager.semaphore:
+                task = asyncio.create_task(asyncio.to_thread(analyze, path.parent, source, body))
+                try:
+                    return await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    # La desconexión del cliente no detiene el thread de lectura.
+                    await task
+                    raise
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        except (OSError, KeyError, TypeError):
+            logger.exception("No se pudo analizar el resultado %s", result_id)
+            raise HTTPException(422, "No se pudo leer la secuencia alineada. Repite la búsqueda.")
+        finally:
+            manager.analysis_count -= 1
+            manager.analysis_owners[ip] -= 1
+            if not manager.analysis_owners[ip]:
+                del manager.analysis_owners[ip]
 
     @app.get("/api/results/{result_id}/frames/{index}.png")
     async def frame(result_id: str, index: int):
