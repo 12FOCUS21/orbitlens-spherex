@@ -30,6 +30,12 @@ de cuotas por visitante tras el proxy descrita en DEPLOYMENT.md.
 El smoke de `verify_release.py` cubre HTTP concurrente local y caché, sin ejecutar
 un navegador. La matriz de 15 casos y los tres ensayos pendientes están en
 [STAGE7_QA.md](STAGE7_QA.md).
+Posteriormente se ejecutaron 20 casos E2E con Playwright y Edge headless en
+escritorio y viewport móvil de 390 px, incluidos diez tabs reales simultáneos,
+los tres análisis y el fallo de CDS. La suite se repite con
+`npm.cmd --prefix frontend run test:e2e` y usa caché temporal y cuota elevada solo
+para pruebas. No verifica la carga correcta de catálogos externos, un móvil físico
+ni el proxy de producción. Los tres ensayos de presentación siguen pendientes.
 
 ## Ensayo y reparto para cinco integrantes
 

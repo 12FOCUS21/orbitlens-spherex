@@ -2,12 +2,16 @@
 
 ## Comprobación automática local
 
+Tras instalar las dependencias Python, restaurar también las dependencias de
+desarrollo frontend con `npm.cmd --prefix frontend ci`.
+
 ```powershell
 npm.cmd --prefix frontend test
 npm.cmd --prefix frontend run build
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe verify_demo.py
 .\.venv\Scripts\python.exe verify_release.py
+npm.cmd --prefix frontend run test:e2e
 ```
 
 `verify_release.py` comprueba la aplicación mediante HTTP en proceso, sobre una
@@ -30,6 +34,50 @@ Comprueba:
 Render ni verifica separación de IP tras su proxy. La lectura científica de los
 FITS se verifica por separado con `verify_demo.py`. Aladin requiere QA con red.
 
+## Regresión funcional en navegador — 2026-11-06
+
+**20 casos correctos en Edge 156.0.4314.58 headless en Windows**: diez pruebas
+en escritorio (1365×900) y las mismas diez a 390×844 con emulación móvil.
+No se detectaron excepciones JavaScript no controladas ni desbordamiento horizontal
+del documento en los estados comprobados. No es una prueba en un móvil físico.
+
+La suite está en `frontend/e2e/viewer.spec.ts` y usa Playwright como dependencia
+de desarrollo. `npm.cmd --prefix frontend run test:e2e` recompila primero la app
+mediante el hook `pretest:e2e`, arranca un Uvicorn exclusivo en `127.0.0.1:8765`,
+y comprueba:
+
+- Carga de los cinco presets y de sus canvas.
+- Enlace de WISE 0855 abierto en otra página, con centro, opciones y etiqueta.
+- Cambio espectral que pausa la reproducción y conserva el índice temporal;
+  apertura del detalle de FLAGS y distinción entre máscara y cobertura alineada.
+- Diferencia A−B con inversión de colores verificada píxel a píxel en navegador.
+- Media de RW Aur y curvas centrales con 12, 10 y 0 valores válidos.
+- Enlaces inválidos y parejas incompatibles rechazados sin enviar el POST correspondiente.
+- Fallo de CDS con mensaje y enlace alternativo.
+- Estados partial y ready de dos frames, con animación deshabilitada. Estos dos
+  estados usan respuestas controladas; no son búsquedas nuevas en IRSA.
+- Diez pestañas reales del navegador cargando Barnard simultáneamente.
+
+El servidor de `tests/browser_server.py` copia el bundle a un directorio temporal
+y prohíbe resolver nombres o construir secuencias nuevas. Su cuota es 500/minuto
+**solo para estas pruebas**; no modifica los límites del servidor normal. Los
+límites de producción no se validan con esta suite. Las fuentes remotas y CDS
+se bloquean deliberadamente: no se verifica carga correcta de catálogos ni la
+tipografía descargada. Las trazas/capturas de fallos se guardan en
+`frontend/test-results/`, excluido del repositorio.
+
+En Windows se usa Edge o Chrome instalado. Para otro ejecutable:
+
+```powershell
+$env:ORBITLENS_BROWSER = 'C:\ruta\al\navegador.exe'
+npm.cmd --prefix frontend run test:e2e
+```
+
+Sin un navegador detectado se usa Chromium de Playwright; instalarlo con
+`npm.cmd --prefix frontend exec -- playwright install chromium`. El Python por
+defecto es el de `.venv`; `ORBITLENS_TEST_PYTHON` permite indicar otro ejecutable.
+`ORBITLENS_E2E_PORT` cambia el puerto local. No se reutiliza un servidor existente.
+
 ## Matriz de 15 casos
 
 Los casos con coordenadas nuevas pueden consultar IRSA: ejecutarlos manualmente
@@ -38,24 +86,25 @@ ha comprobado. Registrar versión desplegada, fecha, dispositivo y resultado.
 
 | # | Caso | Resultado esperado / evidencia | Estado |
 | --- | --- | --- | --- |
-| 1 | Barnard, 12 frames | Caché ready; 12 centros enmascarados. Diferencia 1−7 invierte signo al intercambiar A/B. | HTTP y cálculo comprobados; visual pendiente |
-| 2 | Epsilon Indi B | Caché ready; curva con 10 valores y 2 ausentes, sin sustituir por cero. | HTTP y cálculo comprobados; visual pendiente |
-| 3 | WISE 0855 | Caché ready; curva con 12 valores. No afirmar detectabilidad por tener centro válido. | HTTP y cálculo comprobados; visual pendiente |
-| 4 | RW Aurigae, apilado 1 y 2 | Media con dos contribuciones por píxel válido y cobertura aproximada del 95,13 %. | HTTP y cálculo comprobados; visual pendiente |
-| 5 | R Draconis, colecciones profundas | Caché ready; advertencia de inventario truncado cuando corresponda; centros ausentes. | HTTP y cálculo comprobados; visual pendiente |
+| 1 | Barnard, 12 frames | Caché ready; 12 centros enmascarados. Diferencia 1−7 invierte signo al intercambiar A/B. | HTTP, cálculo y navegador local comprobados |
+| 2 | Epsilon Indi B | Caché ready; curva con 10 valores y 2 ausentes, sin sustituir por cero. | HTTP, cálculo y navegador local comprobados |
+| 3 | WISE 0855 | Caché ready; curva con 12 valores. No afirmar detectabilidad por tener centro válido. | HTTP, cálculo y navegador local comprobados |
+| 4 | RW Aurigae, apilado 1 y 2 | Media con dos contribuciones por píxel válido y cobertura aproximada del 95,13 %. | HTTP, cálculo y navegador local comprobados |
+| 5 | R Draconis, colecciones profundas | Caché ready; advertencia de inventario truncado cuando corresponda; centros ausentes. | Carga en navegador y cálculo comprobados; revisión del aviso pendiente |
 | 6 | `/?ra=0&dec=0&fov=5&frames=3` | Aceptar ceros; mostrar resultado o vacío según cobertura, nunca error por falsedad de cero. | Enlace probado; cobertura real pendiente |
 | 7 | Polo norte: RA=0, Dec=90 | Entrada válida; WCS o ausencia de cobertura tratados sin 500. | Validación cubierta; consulta real pendiente |
 | 8 | Polo sur: RA=0, Dec=−90 | Entrada válida; no asumir imágenes disponibles. | Validación cubierta; consulta real pendiente |
 | 9 | RA=`08h55m10.831s`, Dec=`-07d14m42.53s` | Equivalencia con grados de esa posición; no confundir con el centro propagado del preset WISE. | Conversión probada; visual pendiente |
-| 10 | Resultado partial controlado, dos frames de doce solicitados | Preservar estado y máscaras; permitir inspección manual, no animación. No depender de encontrar un campo real partial. | API con fixture probada; visual pendiente |
-| 11 | Solicitar y obtener uno o dos frames | Estado ready; animación deshabilitada si hay menos de tres; conservar opciones al compartir. | Pipeline y enlaces probados; visual pendiente |
-| 12 | RA=360, Dec=91, booleanos, minutos=60 o frames=17 | Rechazo 422 en API; URL inválida con mensaje legible sin POST cuando falla validación local. | Pruebas automatizadas; visual pendiente |
-| 13 | Longitud de onda desconocida / bandas incompatibles | Desconocidas al final del selector; no permitir diferencia/apilado incompatible ni inventar bandas. | Pruebas automatizadas; visual pendiente |
-| 14 | Aladin sin CDS disponible | Mantener visor SPHEREx, mostrar error y enlace externo alternativo; no afirmar catálogos cargados. | Manual pendiente |
-| 15 | Diez visitas y dos campos repetidos; cuotas | Smoke local correcto. Repetir con diez pestañas; en Render usar dos conexiones y probar cabeceras falsificadas. | HTTP local comprobado; navegador/Render pendientes |
+| 10 | Resultado partial controlado, dos frames de doce solicitados | Preservar estado y máscaras; permitir inspección manual, no animación. No depender de encontrar un campo real partial. | API y navegador con fixture comprobados |
+| 11 | Solicitar y obtener uno o dos frames | Estado ready; animación deshabilitada si hay menos de tres; conservar opciones al compartir. | Pipeline y enlaces probados; navegador con dos frames controlados comprobado |
+| 12 | RA=360, Dec=91, booleanos, minutos=60 o frames=17 | Rechazo 422 en API; URL inválida con mensaje legible sin POST cuando falla validación local. | API y rechazo de enlaces inválidos en navegador comprobados |
+| 13 | Longitud de onda desconocida / bandas incompatibles | Desconocidas al final del selector; no permitir diferencia/apilado incompatible ni inventar bandas. | Orden espectral probado; bloqueo de pareja incompatible en navegador comprobado |
+| 14 | Aladin sin CDS disponible | Mantener visor SPHEREx, mostrar error y enlace externo alternativo; no afirmar catálogos cargados. | Fallo controlado en navegador comprobado; carga correcta con CDS pendiente |
+| 15 | Diez visitas y dos campos repetidos; cuotas | Smoke local correcto. Repetir con diez pestañas; en Render usar dos conexiones y probar cabeceras falsificadas. | HTTP y diez pestañas locales comprobados; Render pendiente |
 
 Repetir los controles de enlaces, selector, FLAGS y análisis a **390 px** siguiendo
-`STAGE6_QA.md`. Las pruebas HTTP no detectan desbordamientos ni errores visuales.
+`STAGE6_QA.md`. La suite de navegador comprueba esos controles y el ancho del
+documento; sigue pendiente la revisión manual de diseño, tipografía y dispositivo real.
 
 ## Tres ensayos de demo
 

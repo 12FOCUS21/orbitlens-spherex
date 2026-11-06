@@ -39,6 +39,11 @@ ni consultas remotas. No ejecutan React en un navegador. La suite Python y
 
 ## Regresión manual pendiente para esta versión
 
+La regresión funcional automatizada en Edge de `STAGE7_QA.md` ya comprueba
+enlaces, controles, análisis, calidad y ausencia de desbordamiento a 390 px.
+La lista siguiente conserva tareas manuales: no sustituye pruebas en dispositivo
+real ni la comprobación de catálogos disponibles y cuotas en producción.
+
 - [ ] Abrir Barnard, copiar su enlace y abrirlo en una ventana privada. Comparar
   coordenadas, FOV, cantidad solicitada, detector y etiqueta.
 - [ ] Abrir `/?preset=barnard&fov=4&frames=2&detector=SPHEREx-D3` y comprobar que
