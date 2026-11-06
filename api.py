@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 import threading
 import time
@@ -282,6 +283,8 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
     @asynccontextmanager
     async def lifespan(app):
         await asyncio.to_thread(manager.load_cache)
+        if os.environ.get("ORBITLENS_REQUIRE_PRESETS") == "1" and len(manager.presets) != len(PRESETS):
+            raise RuntimeError("Despliegue incompleto: faltan presets compatibles. Ejecutar prepare_deploy.py antes de publicar.")
         yield
         # No iniciar búsquedas pendientes durante el apagado del servidor.
         for task in list(manager.tasks):

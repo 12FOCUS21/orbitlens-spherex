@@ -1,0 +1,139 @@
+{
+  "results": [
+    {
+      "preset": "barnard",
+      "target": {
+        "name": "Barnard's Star",
+        "main_id": "NAME Barnard's star",
+        "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+        "server_failures": [
+          {
+            "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+            "error": "ConnectTimeout: timed out"
+          }
+        ],
+        "reference_epoch": "J2000",
+        "reference_ra_deg": 269.4520769586187,
+        "reference_dec_deg": 4.693364966576667,
+        "pm_ra_cosdec_mas_yr": -801.551,
+        "pm_dec_mas_yr": 10362.394,
+        "proper_motion_applied": true,
+        "requested_epoch_jyear": 2026.5,
+        "ra_deg": 269.4461561544679,
+        "dec_deg": 4.7696436297734275,
+        "coordinate_epoch_jyear": 2026.5,
+        "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+        "retrieved_at_utc": "2026-11-06T01:16:21.015988+00:00"
+      },
+      "manifest": "76e5f3e44ac9db0b035cc43d/manifest.json"
+    },
+    {
+      "preset": "epsilon-indi-b",
+      "target": {
+        "name": "eps Ind B",
+        "main_id": "* eps Ind B",
+        "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+        "server_failures": [
+          {
+            "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+            "error": "ConnectTimeout: timed out"
+          }
+        ],
+        "reference_epoch": "J2000",
+        "reference_ra_deg": 331.04414658852124,
+        "reference_dec_deg": -56.782844195116105,
+        "pm_ra_cosdec_mas_yr": 3981.977,
+        "pm_dec_mas_yr": -2466.832,
+        "proper_motion_applied": true,
+        "requested_epoch_jyear": 2026.5,
+        "ra_deg": 331.0976793093026,
+        "dec_deg": -56.80099136073972,
+        "coordinate_epoch_jyear": 2026.5,
+        "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+        "retrieved_at_utc": "2026-11-06T01:28:30.970095+00:00"
+      },
+      "manifest": "900a67b80fd744bca5af4d4a/manifest.json"
+    },
+    {
+      "preset": "wise0855",
+      "target": {
+        "name": "WISE J085510.83-071442.5",
+        "main_id": "WISEA J085510.74-071442.5",
+        "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+        "server_failures": [
+          {
+            "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+            "error": "ConnectTimeout: timed out"
+          }
+        ],
+        "reference_epoch": "J2000",
+        "reference_ra_deg": 133.81890825,
+        "reference_dec_deg": -7.247048000000001,
+        "pm_ra_cosdec_mas_yr": -8123.7,
+        "pm_dec_mas_yr": 673.2,
+        "proper_motion_applied": true,
+        "requested_epoch_jyear": 2026.5,
+        "ra_deg": 133.75862791900516,
+        "dec_deg": -7.242088534453036,
+        "coordinate_epoch_jyear": 2026.5,
+        "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+        "retrieved_at_utc": "2026-11-06T01:30:19.761693+00:00"
+      },
+      "manifest": "8912e9ce39460d40ab5a8ea1/manifest.json"
+    },
+    {
+      "preset": "rw-aur",
+      "target": {
+        "name": "RW Aur",
+        "main_id": "V* RW Aur",
+        "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+        "server_failures": [
+          {
+            "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+            "error": "ConnectTimeout: timed out"
+          }
+        ],
+        "reference_epoch": "J2000",
+        "reference_ra_deg": 76.95652603458333,
+        "reference_dec_deg": 30.401438173888888,
+        "pm_ra_cosdec_mas_yr": 7.23,
+        "pm_dec_mas_yr": -20.33,
+        "proper_motion_applied": true,
+        "requested_epoch_jyear": 2026.5,
+        "ra_deg": 76.95658773973359,
+        "dec_deg": 30.4012885224855,
+        "coordinate_epoch_jyear": 2026.5,
+        "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+        "retrieved_at_utc": "2026-11-06T01:32:13.175562+00:00"
+      },
+      "manifest": "ca9f5467e482348cb3659aac/manifest.json"
+    },
+    {
+      "preset": "r-dra",
+      "target": {
+        "name": "R Dra",
+        "main_id": "V* R Dra",
+        "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+        "server_failures": [
+          {
+            "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+            "error": "ConnectTimeout: timed out"
+          }
+        ],
+        "reference_epoch": "J2000",
+        "reference_ra_deg": 248.16761083295,
+        "reference_dec_deg": 66.75497941722,
+        "pm_ra_cosdec_mas_yr": -20.643,
+        "pm_dec_mas_yr": 6.149,
+        "proper_motion_applied": true,
+        "requested_epoch_jyear": 2026.5,
+        "ra_deg": 248.16722580747492,
+        "dec_deg": 66.7550246802231,
+        "coordinate_epoch_jyear": 2026.5,
+        "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+        "retrieved_at_utc": "2026-11-06T01:33:52.934473+00:00"
+      },
+      "manifest": "47356868d75d0ac3d8abcaf4/manifest.json"
+    }
+  ]
+}

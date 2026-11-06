@@ -1,0 +1,1118 @@
+{
+  "schema_version": 1,
+  "pipeline_version": "0.2.2",
+  "cache_key": "47356868d75d0ac3d8abcaf4",
+  "created_at_utc": "2026-11-06T01:34:08.696790+00:00",
+  "parameters": {
+    "ra": 248.16722580747492,
+    "dec": 66.7550246802231,
+    "fov": 5,
+    "frames": 12,
+    "detector": null,
+    "maxrec": 1000,
+    "min_coverage": 0.5
+  },
+  "collections": [
+    "spherex_qr3",
+    "spherex_qr3_deep",
+    "spherex_qr2",
+    "spherex_qr2_deep"
+  ],
+  "queries": {
+    "spherex_qr3": {
+      "rows": 0,
+      "possibly_truncated": false,
+      "retrieved_at_utc": "2026-11-06T01:33:54.439002+00:00"
+    },
+    "spherex_qr3_deep": {
+      "rows": 723,
+      "possibly_truncated": false,
+      "retrieved_at_utc": "2026-11-06T01:33:57.582741+00:00"
+    },
+    "spherex_qr2": {
+      "rows": 537,
+      "possibly_truncated": false,
+      "retrieved_at_utc": "2026-11-06T01:34:01.604887+00:00"
+    },
+    "spherex_qr2_deep": {
+      "rows": 1000,
+      "possibly_truncated": true,
+      "retrieved_at_utc": "2026-11-06T01:34:06.262911+00:00"
+    }
+  },
+  "detector": "SPHEREx-D1",
+  "frames": [
+    {
+      "index": 0,
+      "image": "frames/000.png",
+      "aligned_fits": "aligned/000.fits",
+      "mjd": 60832.473887,
+      "date_utc": "2025-06-06T11:22:23.837",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2",
+      "obs_id": "2025W23_2B_0206_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W23_2B/l2b-v20-2025-252/1/level2_2025W23_2B_0206_1D1_spx_l2b-v20-2025-252.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W23_2B/l2b-v20-2025-252/1/level2_2025W23_2B_0206_1D1_spx_l2b-v20-2025-252.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.03451696092045229,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.025590160682404287,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.004364213449712359,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.02082920055544535,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.004959333465582225,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.9137859225322782,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097158,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.9436014839717635,
+        "width_um": 0.024135938197399356,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 1,
+      "image": "frames/001.png",
+      "aligned_fits": "aligned/001.fits",
+      "mjd": 60874.666517,
+      "date_utc": "2025-07-18T15:59:47.069",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2",
+      "obs_id": "2025W29_2A_0288_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W29_2A/l2b-v20-2025-262/1/level2_2025W29_2A_0288_1D1_spx_l2b-v20-2025-262.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W29_2A/l2b-v20-2025-262/1/level2_2025W29_2A_0288_1D1_spx_l2b-v20-2025-262.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.024003173973417974,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.02241618726443166,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0011902400317397343,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.018250347153342592,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0005951200158698671,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.948771345272803,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097158,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.7983143853495372,
+        "width_um": 0.01974924439896944,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 2,
+      "image": "frames/002.png",
+      "aligned_fits": "aligned/002.fits",
+      "mjd": 60916.370508,
+      "date_utc": "2025-08-29T08:53:31.891",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2_deep",
+      "obs_id": "2025W35_2A_0170_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W35_2A/l2b-v20-2025-271/1/level2_2025W35_2A_0170_1D1_spx_l2b-v20-2025-271.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W35_2A/l2b-v20-2025-271/1/level2_2025W35_2A_0170_1D1_spx_l2b-v20-2025-271.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.027375520730013887,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.023804800634794683,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0023804800634794686,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.01606824042848641,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0011902400317397343,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.9221157850895461,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097158,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.9512241439686554,
+        "width_um": 0.024733379303459434,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 3,
+      "image": "frames/003.png",
+      "aligned_fits": "aligned/003.fits",
+      "mjd": 60938.652714,
+      "date_utc": "2025-09-20T15:39:54.490",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2_deep",
+      "obs_id": "2025W38_2C_0426_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W38_2C/l2b-v20-2025-269/1/level2_2025W38_2C_0426_1D1_spx_l2b-v20-2025-269.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W38_2C/l2b-v20-2025-269/1/level2_2025W38_2C_0426_1D1_spx_l2b-v20-2025-269.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.02420154731204126,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.021027573894068636,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0015869867089863122,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.01606824042848641,
+            "masked": true
+          },
+          {
+            "bit": 10,
+            "name": "HOT",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.0005951200158698671,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0017853600476096013,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.9192003331945023,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097158,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.922253914060867,
+        "width_um": 0.023533389554616396,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 4,
+      "image": "frames/004.png",
+      "aligned_fits": "aligned/004.fits",
+      "mjd": 60957.195934,
+      "date_utc": "2025-10-09T04:42:08.698",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2_deep",
+      "obs_id": "2025W41_1A_0697_4",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W41_1A/l2b-v20-2025-284/1/level2_2025W41_1A_0697_4D1_spx_l2b-v20-2025-284.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W41_1A/l2b-v20-2025-284/1/level2_2025W41_1A_0697_4D1_spx_l2b-v20-2025-284.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.027970640745883752,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.027177147391390596,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.024003173973417974,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.0007934933544931561,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.9271137026239067,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097157,
+        "center_pixel_flag_names": [
+          "TRANSIENT",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.7760483005629636,
+        "width_um": 0.018381143273603226,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 5,
+      "image": "frames/005.png",
+      "aligned_fits": "aligned/005.fits",
+      "mjd": 60980.554236,
+      "date_utc": "2025-11-01T13:18:05.990",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2_deep",
+      "obs_id": "2025W44_2B_0523_2",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W44_2B/l2b-v20-2025-307/1/level2_2025W44_2B_0523_2D1_spx_l2b-v20-2025-307.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W44_2B/l2b-v20-2025-307/1/level2_2025W44_2B_0523_2D1_spx_l2b-v20-2025-307.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.027970640745883752,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.024003173973417974,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0033723467565959135,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.020035707200952192,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.00019837333862328903,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0007934933544931561,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.9154518950437318,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097158,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 1.0000267430305074,
+        "width_um": 0.02629261806998906,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 6,
+      "image": "frames/006.png",
+      "aligned_fits": "aligned/006.fits",
+      "mjd": 60999.636837,
+      "date_utc": "2025-11-20T15:17:02.717",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2",
+      "obs_id": "2025W47_2A_0033_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W47_2A/l2b-v20-2025-328/1/level2_2025W47_2A_0033_1D1_spx_l2b-v20-2025-328.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2025W47_2A/l2b-v20-2025-328/1/level2_2025W47_2A_0033_1D1_spx_l2b-v20-2025-328.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.027917505030181086,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.025653923541247486,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0025150905432595573,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.018611670020120725,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.0007545271629778672,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          }
+        ],
+        "valid_coverage": 0.8692211578508955,
+        "input_shape": [
+          71,
+          56
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 2097158,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.8254680679337532,
+        "width_um": 0.02021702469761589,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 7,
+      "image": "frames/007.png",
+      "aligned_fits": "aligned/007.fits",
+      "mjd": 61227.484528,
+      "date_utc": "2026-07-06T11:37:43.219",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr2",
+      "obs_id": "2026W28_1A_0104_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2026W28_1A/l2b-v25-2026-191/1/level2_2026W28_1A_0104_1D1_spx_l2b-v25-2026-191.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2/level2/2026W28_1A/l2b-v25-2026-191/1/level2_2026W28_1A_0104_1D1_spx_l2b-v25-2026-191.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.10196389605237056,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.04423725451299346,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.002578853402102757,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.025590160682404287,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.0033723467565959135,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.0013886133703630231,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0027772267407260463,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          },
+          {
+            "bit": 26,
+            "name": "BLOOM",
+            "fraction": 0.017060107121602858,
+            "masked": true
+          },
+          {
+            "bit": 28,
+            "name": "HALO",
+            "fraction": 0.07915096211069232,
+            "masked": true
+          }
+        ],
+        "valid_coverage": 0.7909204498125781,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 69206022,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE",
+          "BLOOM"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 1.0082369003596345,
+        "width_um": 0.027000924018676226,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 8,
+      "image": "frames/008.png",
+      "aligned_fits": "aligned/008.fits",
+      "mjd": 61248.526904,
+      "date_utc": "2026-07-27T12:38:44.506",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr3_deep",
+      "obs_id": "2026W31_1B_0103_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W31_1B/l2b-v27-2026-224/1/level2_2026W31_1B_0103_1D1_spx_l2b-v27-2026-224.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W31_1B/l2b-v27-2026-224/1/level2_2026W31_1B_0103_1D1_spx_l2b-v27-2026-224.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.05157706804205515,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.021622693909938505,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0005951200158698671,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.014878000396746678,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.0029756000793493354,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.0005951200158698671,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0011902400317397343,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          },
+          {
+            "bit": 26,
+            "name": "BLOOM",
+            "fraction": 0.005951200158698671,
+            "masked": true
+          },
+          {
+            "bit": 28,
+            "name": "HALO",
+            "fraction": 0.04185677444951399,
+            "masked": true
+          }
+        ],
+        "valid_coverage": 0.8904623073719283,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 69206022,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE",
+          "BLOOM"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.7845009334963815,
+        "width_um": 0.019454243462832255,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 9,
+      "image": "frames/009.png",
+      "aligned_fits": "aligned/009.fits",
+      "mjd": 61269.095791,
+      "date_utc": "2026-08-17T02:17:56.342",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr3_deep",
+      "obs_id": "2026W34_1A_0020_2",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W34_1A/l2b-v27-2026-243/1/level2_2026W34_1A_0020_2D1_spx_l2b-v27-2026-243.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W34_1A/l2b-v27-2026-243/1/level2_2026W34_1A_0020_2D1_spx_l2b-v27-2026-243.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.03927792104741123,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.01844872049196588,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.0011902400317397343,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.01210077365602063,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.0017853600476096013,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.0009918666931164452,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          },
+          {
+            "bit": 26,
+            "name": "BLOOM",
+            "fraction": 0.010513786947034318,
+            "masked": true
+          },
+          {
+            "bit": 28,
+            "name": "HALO",
+            "fraction": 0.02598690735965086,
+            "masked": true
+          }
+        ],
+        "valid_coverage": 0.9133694294044148,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 69206022,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE",
+          "BLOOM"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.754615431840243,
+        "width_um": 0.01762632881570516,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 10,
+      "image": "frames/010.png",
+      "aligned_fits": "aligned/010.fits",
+      "mjd": 61288.784585,
+      "date_utc": "2026-09-05T18:49:48.144",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr3_deep",
+      "obs_id": "2026W36_2A_0644_3",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W36_2A/l2b-v27-2026-254/1/level2_2026W36_2A_0644_3D1_spx_l2b-v27-2026-254.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W36_2A/l2b-v27-2026-254/1/level2_2026W36_2A_0644_3D1_spx_l2b-v27-2026-254.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.0960126958936719,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.027772267407260465,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.004364213449712359,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.021424320571315214,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.0015869867089863122,
+            "masked": true
+          },
+          {
+            "bit": 11,
+            "name": "COLD",
+            "fraction": 0.0005951200158698671,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.00039674667724657806,
+            "masked": true
+          },
+          {
+            "bit": 20,
+            "name": "CROSSTALK",
+            "fraction": 0.052568934735171595,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          },
+          {
+            "bit": 26,
+            "name": "BLOOM",
+            "fraction": 0.02638365403689744,
+            "masked": true
+          },
+          {
+            "bit": 28,
+            "name": "HALO",
+            "fraction": 0.0162666137671097,
+            "masked": true
+          }
+        ],
+        "valid_coverage": 0.8571428571428571,
+        "input_shape": [
+          71,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 69206022,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE",
+          "BLOOM"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 0.9499033535784916,
+        "width_um": 0.02485197382825367,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    },
+    {
+      "index": 11,
+      "image": "frames/011.png",
+      "aligned_fits": "aligned/011.fits",
+      "mjd": 61310.291175,
+      "date_utc": "2026-09-27T06:59:17.520",
+      "detector": "SPHEREx-D1",
+      "collection": "spherex_qr3_deep",
+      "obs_id": "2026W39_2A_0591_1",
+      "access_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W39_2A/l2b-v27-2026-271/1/level2_2026W39_2A_0591_1D1_spx_l2b-v27-2026-271.fits",
+      "cutout_url": "https://irsa.ipac.caltech.edu/ibe/data/spherex/qr3/level2/2026W39_2A/l2b-v27-2026-271/1/level2_2026W39_2A_0591_1D1_spx_l2b-v27-2026-271.fits?center=248.16722580747492%2C66.7550246802231&size=0.1212677968644246",
+      "exposure_seconds": "113.5826",
+      "quality": {
+        "nonzero_fraction": 1.0,
+        "masked_fraction": 0.08953722334004025,
+        "bits": [
+          {
+            "bit": 0,
+            "name": "TRANSIENT",
+            "fraction": 0.019785378940308518,
+            "masked": true
+          },
+          {
+            "bit": 1,
+            "name": "OVERFLOW",
+            "fraction": 0.005030181086519115,
+            "masked": true
+          },
+          {
+            "bit": 2,
+            "name": "SUR_ERROR",
+            "fraction": 0.019450033534540577,
+            "masked": true
+          },
+          {
+            "bit": 6,
+            "name": "NONFUNC",
+            "fraction": 0.002347417840375587,
+            "masked": true
+          },
+          {
+            "bit": 17,
+            "name": "PERSIST",
+            "fraction": 0.00033534540576794097,
+            "masked": true
+          },
+          {
+            "bit": 20,
+            "name": "CROSSTALK",
+            "fraction": 0.047619047619047616,
+            "masked": true
+          },
+          {
+            "bit": 21,
+            "name": "SOURCE",
+            "fraction": 1.0,
+            "masked": false
+          },
+          {
+            "bit": 26,
+            "name": "BLOOM",
+            "fraction": 0.019114688128772636,
+            "masked": true
+          },
+          {
+            "bit": 28,
+            "name": "HALO",
+            "fraction": 0.022132796780684104,
+            "masked": true
+          }
+        ],
+        "valid_coverage": 0.5639316951270305,
+        "input_shape": [
+          42,
+          71
+        ],
+        "center_pixel_valid": false,
+        "center_pixel_flags": 69206022,
+        "center_pixel_flag_names": [
+          "OVERFLOW",
+          "SUR_ERROR",
+          "SOURCE",
+          "BLOOM"
+        ]
+      },
+      "wavelength_at_target": {
+        "central_um": 1.1133814589379645,
+        "width_um": 0.030140848182226752,
+        "method": "WCS-WAVE visualization lookup, without SIP"
+      }
+    }
+  ],
+  "failures": [],
+  "credit": "NASA/JPL-Caltech; SPHEREx data hosted by IRSA",
+  "quality_policy": {
+    "mask_bits": [
+      0,
+      1,
+      2,
+      6,
+      7,
+      9,
+      10,
+      11,
+      14,
+      15,
+      17,
+      19,
+      20,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "source": "https://irsa.ipac.caltech.edu/onlinehelp/spherex/spherex/sp.html",
+    "informational_bits": [
+      12,
+      21
+    ],
+    "unknown_bits_masked": false
+  },
+  "caveats": [
+    "Exploración visual; no confirma movimiento ni descubrimientos.",
+    "Mismo detector no garantiza la misma longitud de onda.",
+    "Sin sustracción de ZODI ni ajuste de PSF ni fotometría.",
+    "Rejilla ICRS fija; los frames no siguen el movimiento del objeto."
+  ],
+  "status": "ready",
+  "requested_frames": 12,
+  "frame_count": 12,
+  "requested_count_reached": true,
+  "available_observations": 502,
+  "download_fov_arcmin": 7.276067811865476,
+  "display": {
+    "percentiles": [
+      1,
+      99
+    ],
+    "limits_MJy_sr": [
+      0.16596739869406352,
+      10.23613058009955
+    ],
+    "stretch": "asinh",
+    "asinh_factor": 10,
+    "vertical_flip": true
+  },
+  "grid": {
+    "shape": [
+      49,
+      49
+    ],
+    "pixel_scale_arcsec": 6.15,
+    "orientation": "north-up, east-left",
+    "fits_header": "WCSAXES =                    2 / Number of coordinate axes                      CRPIX1  =                 25.0 / Pixel coordinate of reference point            CRPIX2  =                 25.0 / Pixel coordinate of reference point            CDELT1  =  -0.0017083333333333 / [deg] Coordinate increment at reference point  CDELT2  =   0.0017083333333333 / [deg] Coordinate increment at reference point  CUNIT1  = 'deg'                / Units of coordinate increment and value        CUNIT2  = 'deg'                / Units of coordinate increment and value        CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection           CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection               CRVAL1  =      248.16722580747 / [deg] Coordinate value at reference point      CRVAL2  =      66.755024680223 / [deg] Coordinate value at reference point      LONPOLE =                180.0 / [deg] Native longitude of celestial pole       LATPOLE =      66.755024680223 / [deg] Native latitude of celestial pole        MJDREF  =                  0.0 / [d] MJD of fiducial time                       RADESYS = 'ICRS'               / Equatorial coordinate system                   END                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ",
+    "reprojection": "bilinear; flags nearest-neighbor"
+  },
+  "center_masked_frame_count": 12,
+  "warnings": [
+    "El píxel central carece de valor válido en 12 de 12 frames; no evaluar la fuente central con esos píxeles."
+  ],
+  "preview": {
+    "image": "preview.gif",
+    "frame_duration_ms": 500,
+    "physical_time_scale": false
+  }
+}

@@ -329,3 +329,8 @@ no especificada; no equivalen al centro propagado a 2026.5.
 - Añadidas cuatro pruebas de regresión del lector: JSON con comas y exportación
   CSV, resultado vacío, error SIA y respuesta no XML. Pendientes de ejecutar en la
   terminal del usuario junto al script; el agente no tiene acceso al Python instalado.
+
+## Etapa 4 — preparación de despliegue
+Se añadieron render.yaml, start_server.py, prepare_deploy.py y DEPLOYMENT.md.
+El usuario ejecutó el empaquetado de los cinco presets y las 32 pruebas: todas pasan en 1.226 s. Paquete demo/cache: 126 archivos y 2,464,219 bytes. Pendiente publicar y validar URL pública. La etapa sigue abierta.
+

@@ -16,6 +16,7 @@ data/raw/
 data/cache/
 *.fits
 *.fit
+!demo/cache/**/*.fits
 .env
 .env.*
 !.env.example
