@@ -37,16 +37,17 @@ limitaciones de calidad están en [VALIDATION.md](VALIDATION.md).
 
 El recorte validado corresponde a QR3/D6, con IMAGE de 49 × 49 píxeles y unidades
 MJy/sr. El archivo FITS completo del recorte ocupa 3,985,920 bytes e incluye
-extensiones auxiliares. Falta verificar la identidad del objeto en la imagen e
+extensiones auxiliares. Falta verificar la identidad del objeto en la imagen y
 revisar su detectabilidad. La política de máscara por bits de la Etapa 2 está
 documentada en SCIENCE.md.
 
-**Etapa 3 implementada, pendiente de ejecución local:** API FastAPI de trabajos
+**Etapa 3 ejecutada localmente, pendiente de QA visual:** API FastAPI de trabajos
 con polling y web React + Vite + TypeScript. Incluye caché primero, cola,
-límites por IP, presets y reproductor canvas con avisos científicos. El entorno
-del agente no permite ejecutar el Python instalado ni acceder al registro npm;
-no se afirma que la nueva suite pase ni que la web compile hasta comprobarlo
-en la terminal del usuario.
+límites por IP, presets y reproductor canvas con avisos científicos. La terminal
+del usuario confirmó 30 pruebas correctas, compilación TypeScript/Vite y arranque
+de Uvicorn. La página y las 12 imágenes de Barnard respondieron HTTP 200.
+La prueba interactiva de controles y diseño móvil sigue pendiente: la herramienta
+del agente no encuentra un navegador conectado. Evidencia en STAGE3_QA.md.
 
 ## Etapa 3: ejecutar la web local
 
