@@ -41,13 +41,15 @@ extensiones auxiliares. Falta verificar la identidad del objeto en la imagen y
 revisar su detectabilidad. La política de máscara por bits de la Etapa 2 está
 documentada en SCIENCE.md.
 
-**Etapa 3 ejecutada localmente, pendiente de QA visual:** API FastAPI de trabajos
+**Etapa 3 completada y aceptada funcionalmente en localhost:** API FastAPI de trabajos
 con polling y web React + Vite + TypeScript. Incluye caché primero, cola,
 límites por IP, presets y reproductor canvas con avisos científicos. La terminal
 del usuario confirmó 30 pruebas correctas, compilación TypeScript/Vite y arranque
 de Uvicorn. La página y las 12 imágenes de Barnard respondieron HTTP 200.
-La prueba interactiva de controles y diseño móvil sigue pendiente: la herramienta
-del agente no encuentra un navegador conectado. Evidencia en STAGE3_QA.md.
+El usuario confirmó manualmente el funcionamiento de los controles del reproductor.
+La herramienta de navegador del agente falló al leer la página; no se atribuye
+una verificación visual automatizada. La regresión ampliada y móvil sigue
+documentada en STAGE3_QA.md. La siguiente etapa es el despliegue público.
 
 ## Etapa 3: ejecutar la web local
 

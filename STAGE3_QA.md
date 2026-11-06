@@ -1,5 +1,10 @@
 # Etapa 3 — Validación local
 
+**Etapa 3 aceptada funcionalmente en localhost.** Tras la solicitud de comprobar
+Epsilon Indi B, reproducir/pausar, deslizador, velocidades y bucle, el usuario
+confirmó: «Todo está funcional». Esta es una comprobación manual del usuario;
+el agente no realizó la prueba visual automatizada.
+
 ## Estado de las comprobaciones
 
 Implementados `api.py`, `coordinates.py`, `frontend/` y 12 pruebas nuevas en
@@ -19,10 +24,17 @@ La ejecución en la terminal del usuario confirmó:
   12 PNG del resultado `76e5f3e44ac9db0b035cc43d`.
 
 Estas evidencias proceden de la salida compartida por el usuario; no verifican
-por sí solas los controles visuales. Al intentar la revisión de navegador, la
-herramienta informó `No browser is available` y la lista de navegadores estaba
-vacía. La revisión visual permanece pendiente hasta conectar un navegador o
-recibir la comprobación manual del usuario.
+por sí solas los controles visuales. Tras reinstalar el plugin, Chrome ya se
+conecta y la herramienta detecta la pestaña «OrbitLens · SPHEREx Time Atlas»
+en `http://127.0.0.1:8000/`.
+
+La revisión visual automatizada no pudo completarse: las operaciones de lectura DOM, captura
+y creación de pestaña fallan en la herramienta con
+`Cannot read properties of undefined (reading 'timeoutMs')`. Se probaron las
+alternativas documentadas de Playwright, DOM CUA y captura, y se consultó la
+guía de diagnóstico. No se ha podido observar ni accionar los controles y no
+se atribuye este error al código de OrbitLens. No repetir la instalación de la
+extensión como diagnóstico de navegador ausente: la conexión ya está resuelta.
 
 Mensajes revisados de esa ejecución:
 
@@ -70,14 +82,21 @@ La salud debería informar `cached_presets: 5` con el informe y los archivos
 de la última validación de Etapa 2 presentes. `npm install` genera el lockfile
 de dependencias para que el usuario lo incluya con el código.
 
-## Comprobaciones manuales pendientes
+## Comprobación manual y regresiones adicionales
+
+La aceptación funcional anterior permite cerrar la Etapa 3. Las casillas abiertas
+son comprobaciones adicionales sin evidencia individual registrada; se conservan
+para la regresión previa al despliegue y la revisión de la Etapa 7. No implican
+fallos conocidos ni se marcan como ejecutadas por la confirmación general.
 
 - [ ] Los cinco presets muestran «12 imágenes · en caché» y abren sin consultas
   externas. Revisar Epsilon Indi B y WISE 0855 primero; su centro es menos afectado.
 - [ ] Barnard, RW Aurigae y R Draconis avisan que el centro está enmascarado
   en 12/12; Epsilon Indi B en 2/12. Los huecos conservan transparencia.
-- [ ] Play/pausa, deslizador, 1/2/4 fps y bucle funcionan. Al desactivar el bucle,
-  la reproducción se detiene en la última imagen; volver a reproducir reinicia.
+- [x] Reproducción/pausa, deslizador, velocidades y bucle: funcionamiento
+  confirmado manualmente por el usuario.
+- [ ] Regresión detallada: al desactivar el bucle, la reproducción se detiene
+  en la última imagen; volver a reproducir reinicia.
 - [ ] La fecha UTC/MJD y la longitud de onda cambian con el frame mostrado.
   Las imágenes mantienen norte arriba, este a la izquierda y escala global.
 - [ ] Se muestra que igual detector no implica igual banda y que `ready`
