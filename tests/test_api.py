@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from api import JobManager, SearchInput, config_key, create_app
 from coordinates import parse_coordinates
-from spherex_pipeline import PIPELINE_VERSION, PipelineConfig
+from spherex_pipeline import PIPELINE_VERSION, PipelineConfig, MASK_BITS, COLLECTIONS
 
 
 def fixture(root, config=None, status="ready", count=3):
@@ -26,9 +26,15 @@ def fixture(root, config=None, status="ready", count=3):
         image, fits = f"frames/{index:03d}.png", f"aligned/{index:03d}.fits"
         (directory / image).write_bytes(b"mock-png")
         (directory / fits).write_bytes(b"mock-fits")
-        frames.append({"image": image, "aligned_fits": fits, "mjd": 61000 + index})
+        frames.append({"image": image, "aligned_fits": fits, "mjd": 61000 + index,
+                       "date_utc": "2026-01-01T00:00:00", "detector": "SPHEREx-D1",
+                       "collection": COLLECTIONS[0], "cutout_url": "https://irsa.ipac.caltech.edu/",
+                       "quality": {"valid_coverage": 1.0, "center_pixel_valid": True, "center_pixel_flag_names": []},
+                       "wavelength_at_target": {"central_um": None, "width_um": None}})
     from dataclasses import asdict
-    value = {"pipeline_version": PIPELINE_VERSION, "status": status,
+    value = {"pipeline_version": PIPELINE_VERSION, "status": status, "schema_version": 1,
+             "created_at_utc": "2026-01-01T00:00:00", "credit": "NASA/JPL-Caltech; IRSA",
+             "collections": list(COLLECTIONS), "quality_policy": {"mask_bits": list(MASK_BITS)},
              "parameters": asdict(config), "frames": frames, "warnings": ["Centro enmascarado"],
              "caveats": ["No confirma detección"], "queries": {}, "failures": []}
     path = directory / "manifest.json"
@@ -176,7 +182,7 @@ class ApiTests(unittest.TestCase):
                 def builder(config, **kwargs):
                     return fixture(self.cache, config, status, count)
                 with TestClient(self.app(builder=builder)) as client:
-                    response = client.post("/api/search", json={"ra": 15, "dec": 25}).json()
+                    response = client.post("/api/search", json={"ra": 15 + count + (status == "error"), "dec": 25}).json()
                     job = wait_for_job(client, response["job_id"])
                     self.assertEqual(job["status"], status)
                     self.assertEqual(client.get(job["manifest_url"]).json()["status"], status)

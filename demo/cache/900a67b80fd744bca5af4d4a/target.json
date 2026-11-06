@@ -1,0 +1,23 @@
+{
+  "name": "eps Ind B",
+  "main_id": "* eps Ind B",
+  "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+  "server_failures": [
+    {
+      "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+      "error": "ConnectTimeout: timed out"
+    }
+  ],
+  "reference_epoch": "J2000",
+  "reference_ra_deg": 331.04414658852124,
+  "reference_dec_deg": -56.782844195116105,
+  "pm_ra_cosdec_mas_yr": 3981.977,
+  "pm_dec_mas_yr": -2466.832,
+  "proper_motion_applied": true,
+  "requested_epoch_jyear": 2026.5,
+  "ra_deg": 331.0976793093026,
+  "dec_deg": -56.80099136073972,
+  "coordinate_epoch_jyear": 2026.5,
+  "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+  "retrieved_at_utc": "2026-11-06T01:28:30.970095+00:00"
+}

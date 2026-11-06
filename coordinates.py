@@ -2,9 +2,11 @@
 
 import math
 import re
+import warnings
 
 import astropy.units as u
 from astropy.coordinates import Angle
+from astropy.coordinates.angles.errors import IllegalMinuteWarning, IllegalSecondWarning
 
 
 def parse_coordinates(ra: str | float, dec: str | float) -> tuple[float, float]:
@@ -17,7 +19,13 @@ def parse_coordinates(ra: str | float, dec: str | float) -> tuple[float, float]:
         except ValueError:
             # 08:55:10 o 08h55m10s son horas; 133d45m tiene unidad angular explícita.
             unit = u.hourangle if right_ascension and not re.search(r"[d°]", text.lower()) else u.deg
-            degrees = float(Angle(text, unit=unit).degree)
+            try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", IllegalMinuteWarning)
+                    warnings.simplefilter("error", IllegalSecondWarning)
+                    degrees = float(Angle(text, unit=unit).degree)
+            except (IllegalMinuteWarning, IllegalSecondWarning) as exc:
+                raise ValueError("Minutos y segundos deben estar en [0, 60).") from exc
         if not math.isfinite(degrees):
             raise ValueError("Las coordenadas deben ser finitas.")
         if right_ascension and not 0 <= degrees < 360:

@@ -17,8 +17,10 @@ def trim(raw, cache, protected, budget, now=None):
     raw, cache = Path(raw).resolve(), Path(cache).resolve()
     total = footprint(raw) + footprint(cache)
     candidates = []
-    for root, pattern in ((cache, "*"), (raw / "queries", "*"), (raw / "cutouts", "*.fits")):
-        if not root.exists():
+    for root, pattern in ((cache, "*"), (raw / "queries", "*"),
+                          (raw / "cutouts", "*"), (raw / "targets", "*.json"),
+                          (raw / "day1", "*")):
+        if not root.exists() or root.is_symlink():
             continue
         for path in root.glob(pattern):
             if path.is_symlink() or not path.resolve().is_relative_to(root.resolve()):
@@ -27,9 +29,17 @@ def trim(raw, cache, protected, budget, now=None):
                 continue
             if root == raw / "queries" and not RESULT.fullmatch(path.name):
                 continue
+            if root == raw / "cutouts" and path.suffix not in {".fits", ".part"}:
+                continue
             stamp = path.stat().st_mtime
             if now - stamp >= 3600:
                 candidates.append((stamp, path))
+    # Temporales huérfanos fuera de las carpetas ya candidatas (sin duplicarlos).
+    for path in raw.rglob("*.part"):
+        if (not path.is_symlink() and path.resolve().is_relative_to(raw)
+                and now - path.stat().st_mtime >= 3600
+                and not any(path == candidate or candidate in path.parents for _, candidate in candidates)):
+            candidates.append((path.stat().st_mtime, path))
     removed = []
     for _, path in sorted(candidates):
         if total <= budget:

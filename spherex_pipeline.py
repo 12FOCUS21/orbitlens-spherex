@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import logging
 import math
 import re
 import time
@@ -21,12 +22,14 @@ import astropy.units as u
 import httpx
 import numpy as np
 from astropy.io import fits
+from astropy.io.fits.verify import VerifyError
 from astropy.time import Time
 from astropy.wcs import WCS
 from PIL import Image, ImageDraw
 from reproject import reproject_interp
 
 from test_data import COLLECTIONS, cutout_url, download, mjd_key, parse_sia_votable, query_collection, retryable
+from manifest_schema import Manifest
 
 
 PIPELINE_VERSION = "0.2.2"
@@ -43,6 +46,12 @@ FLAG_NAMES = {
 # Política conservadora para visualización; SOURCE y FULLSAMPLE son informativos.
 MASK_BITS = tuple(bit for bit in FLAG_NAMES if bit not in (12, 21))
 BAD_MASK = sum(1 << bit for bit in MASK_BITS)
+logger = logging.getLogger("orbitlens")
+
+
+def public_error(exc: Exception) -> str:
+    """Detalles en el log privado; nunca rutas/URLs del sistema en el manifiesto."""
+    return f"{type(exc).__name__}: no se pudo procesar el dato remoto."
 
 
 @dataclass(frozen=True)
@@ -73,6 +82,14 @@ def fingerprint(value: dict | str) -> str:
     return hashlib.sha256(encoded).hexdigest()[:24]
 
 
+def sequence_key(config: PipelineConfig) -> str:
+    values = asdict(config)
+    for name in ("ra", "dec", "fov", "min_coverage"):
+        values[name] = float(values[name])
+    return fingerprint({"config": values, "version": PIPELINE_VERSION,
+                        "collections": COLLECTIONS, "mask_bits": MASK_BITS, "grid_policy": "odd-v1"})
+
+
 def write_json(path: Path, value: dict) -> None:
     temporary = path.with_suffix(".json.part")
     temporary.write_text(json.dumps(value, indent=2, ensure_ascii=False, allow_nan=False), encoding="utf-8")
@@ -89,7 +106,11 @@ def query_observations(client: httpx.Client, config: PipelineConfig, root: Path,
         path = query_dir / f"query_{collection}.vot"
         try:
             if path.exists() and not refresh and time.time() - path.stat().st_mtime < 7 * 86400:
-                found = parse_sia_votable(path.read_bytes(), collection)
+                try:
+                    found = parse_sia_votable(path.read_bytes(), collection)
+                except ValueError:
+                    path.unlink(missing_ok=True)
+                    found = query_collection(client, collection, args)
             else:
                 found = query_collection(client, collection, args)
             rows.extend(found)
@@ -99,7 +120,8 @@ def query_observations(client: httpx.Client, config: PipelineConfig, root: Path,
                 "retrieved_at_utc": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
             }
         except (httpx.HTTPError, OSError, ValueError) as exc:
-            metadata[collection] = {"error": str(exc)}
+            logger.warning("Consulta %s fallida", collection, exc_info=True)
+            metadata[collection] = {"error": public_error(exc)}
     return rows, metadata
 
 
@@ -147,6 +169,7 @@ def select_times(rows: list[dict], count: int) -> list[dict]:
 
 def common_grid(config: PipelineConfig) -> tuple[WCS, tuple[int, int]]:
     size = math.ceil(config.fov * 60 / PIXEL_SCALE_ARCSEC)
+    size += 1 - size % 2  # El objetivo coincide con un píxel, también en la curva central.
     wcs = WCS(naxis=2)
     wcs.wcs.ctype = ["RA---TAN", "DEC--TAN"]
     wcs.wcs.cunit = ["deg", "deg"]
@@ -186,24 +209,34 @@ def wavelength_at_target(hdul, header, x: float, y: float) -> dict:
         return {"central_um": wave, "width_um": width,
                 "method": "WCS-WAVE visualization lookup, without SIP"}
     except (ValueError, KeyError, TypeError, u.UnitConversionError) as exc:
-        return {"central_um": None, "width_um": None, "error": str(exc)}
+        return {"central_um": None, "width_um": None, "error": public_error(exc)}
+
+
+def validate_cutout(hdul):
+    hdul.verify("exception")
+    science = hdul["IMAGE"]
+    if science.data is None or science.data.ndim != 2 or not science.data.size:
+        raise ValueError("IMAGE no es una imagen 2D con datos.")
+    if u.Unit(science.header.get("BUNIT", "")) != u.MJy / u.sr:
+        raise ValueError("Unidad IMAGE inesperada; se espera MJy/sr.")
+    if ("FLAGS" not in hdul or hdul["FLAGS"].data is None or
+            hdul["FLAGS"].data.shape != science.data.shape or
+            hdul["FLAGS"].data.dtype.kind not in "iu"):
+        raise ValueError("FLAGS ausente, sin datos o incompatible con IMAGE.")
+    wcs = WCS(science.header, hdul).celestial
+    if not wcs.has_celestial or wcs.pixel_n_dim != 2:
+        raise ValueError("IMAGE sin WCS celestial 2D.")
+    return science, wcs
 
 
 def align_cutout(path: Path, config: PipelineConfig, output_wcs: WCS,
                  shape: tuple[int, int]) -> tuple[np.ndarray, np.ndarray, dict]:
     with fits.open(path, memmap=False) as hdul:
-        science = hdul["IMAGE"]
-        image = np.asarray(science.data, dtype=np.float64)
-        if image.ndim != 2:
-            raise ValueError("IMAGE no es 2D.")
-        if u.Unit(science.header.get("BUNIT", "")) != u.MJy / u.sr:
-            raise ValueError("Unidad IMAGE inesperada; se espera MJy/sr.")
-        wcs = WCS(science.header, hdul).celestial
+        science, wcs = validate_cutout(hdul)
+        image = np.array(science.data, dtype=np.float64, copy=True)
         x, y = (float(v) for v in wcs.world_to_pixel_values(config.ra, config.dec))
         if not (-0.5 <= x < image.shape[1] - 0.5 and -0.5 <= y < image.shape[0] - 0.5):
             raise ValueError("El centro solicitado queda fuera del recorte.")
-        if "FLAGS" not in hdul or hdul["FLAGS"].data.shape != image.shape:
-            raise ValueError("FLAGS ausente o con dimensiones diferentes a IMAGE.")
         flags = np.asarray(hdul["FLAGS"].data, dtype=np.uint32)
         rejected, quality = flag_statistics(flags)
         image[rejected | ~np.isfinite(image)] = np.nan
@@ -253,21 +286,19 @@ def cached_cutout(client: httpx.Client, url: str, root: Path, refresh: bool) -> 
     if path.exists() and not refresh:
         try:
             with fits.open(path, memmap=False) as hdul:
-                if "IMAGE" not in hdul:
-                    raise ValueError("Caché FITS sin IMAGE.")
+                validate_cutout(hdul)
             path.touch()
             return path
-        except (OSError, ValueError):
+        except (OSError, ValueError, KeyError, TypeError, VerifyError):
             path.unlink(missing_ok=True)
     for attempt in range(3):
         try:
             download(client, url, path)
             # Verificar que el servicio no haya devuelto HTML con estado 200.
             with fits.open(path, memmap=False) as hdul:
-                if "IMAGE" not in hdul:
-                    raise ValueError("El recorte no contiene IMAGE.")
+                validate_cutout(hdul)
             return path
-        except (httpx.HTTPError, OSError, ValueError) as exc:
+        except (httpx.HTTPError, OSError, ValueError, KeyError, TypeError, VerifyError) as exc:
             path.unlink(missing_ok=True)
             if attempt == 2 or (isinstance(exc, httpx.HTTPError) and not retryable(exc)):
                 raise
@@ -283,16 +314,28 @@ def build_sequence(config: PipelineConfig, *, raw_root: Path = Path("data/raw"),
         with httpx.Client(timeout=httpx.Timeout(30, connect=10), follow_redirects=True) as owned:
             return build_sequence(config, raw_root=raw_root, cache_root=cache_root,
                                   refresh=refresh, client=owned)
-    key = fingerprint({"config": asdict(config), "version": PIPELINE_VERSION,
-                       "collections": COLLECTIONS, "mask_bits": MASK_BITS})
+    key = sequence_key(config)
     destination = cache_root / key
     existing = destination / "manifest.json"
-    if existing.exists() and not refresh:
-        manifest = json.loads(existing.read_text(encoding="utf-8"))
-        if manifest["status"] == "ready" and all(
-                (destination / frame[name]).exists() for frame in manifest["frames"] for name in ("image", "aligned_fits")):
-            print(f"Caché lista: {existing}")
-            return existing
+    cached_manifests = sorted(cache_root.glob(f"{key}*/manifest.json"),
+                              key=lambda path: path.stat().st_mtime, reverse=True) if not refresh else []
+    for existing in cached_manifests:
+        try:
+            manifest = json.loads(existing.read_text(encoding="utf-8"))
+            Manifest.model_validate(manifest)
+            ttl = math.inf if manifest["status"] == "ready" else 60
+            assets = [frame[name] for frame in manifest["frames"] for name in ("image", "aligned_fits")]
+            assets.append("target.json")
+            if "preview" in manifest:
+                assets.append(manifest["preview"]["image"])
+            if (manifest["cache_key"] == key and manifest["status"] in {"ready", "partial", "empty", "error"}
+                    and time.time() - existing.stat().st_mtime < ttl
+                    and all((existing.parent / name).resolve().is_relative_to(existing.parent.resolve())
+                            and (existing.parent / name).is_file() for name in assets)):
+                print(f"Caché lista: {existing}")
+                return existing
+        except (OSError, ValueError, KeyError, TypeError):
+            logger.warning("Manifiesto inválido omitido: %s", existing)
     # Cada intento nuevo usa una carpeta propia; no sobrescribe una secuencia válida.
     if destination.exists():
         destination = cache_root / f"{key}-{uuid.uuid4().hex[:8]}"
@@ -312,6 +355,7 @@ def build_sequence(config: PipelineConfig, *, raw_root: Path = Path("data/raw"),
                             "Sin sustracción de ZODI ni ajuste de PSF ni fotometría.",
                             "Rejilla ICRS fija; los frames no siguen el movimiento del objeto."]}
     manifest_path = destination / "manifest.json"
+    write_json(destination / "target.json", {"ra_deg": config.ra, "dec_deg": config.dec, "frame": "ICRS"})
     if detector is None:
         manifest["status"] = "error" if any("error" in q for q in queries.values()) else "empty"
         write_json(manifest_path, manifest)
@@ -335,8 +379,8 @@ def build_sequence(config: PipelineConfig, *, raw_root: Path = Path("data/raw"),
                 print("AVISO: píxel central sin valor válido; se conserva la máscara y el resto del campo.")
             if len(accepted) == config.frames:
                 break
-        except (httpx.HTTPError, OSError, ValueError, KeyError) as exc:
-            manifest["failures"].append({"access_url": row["access_url"], "error": str(exc)})
+        except (httpx.HTTPError, OSError, ValueError, KeyError, TypeError, VerifyError) as exc:
+            manifest["failures"].append({"access_url": row["access_url"], "error": public_error(exc)})
             print(f"AVISO: frame omitido: {exc}")
     accepted.sort(key=lambda item: mjd_key(item[0]))
     if not accepted:
@@ -344,7 +388,7 @@ def build_sequence(config: PipelineConfig, *, raw_root: Path = Path("data/raw"),
         write_json(manifest_path, manifest)
         return manifest_path
     limits = global_limits([item[1] for item in accepted])
-    manifest.update(status="ready" if len(accepted) >= 3 else "partial",
+    manifest.update(status="ready" if len(accepted) >= min(3, config.frames) else "partial",
                     requested_frames=config.frames, frame_count=len(accepted),
                     requested_count_reached=len(accepted) == config.frames,
                     available_observations=len(groups[detector]),

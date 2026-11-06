@@ -1,0 +1,23 @@
+{
+  "name": "WISE J085510.83-071442.5",
+  "main_id": "WISEA J085510.74-071442.5",
+  "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+  "server_failures": [
+    {
+      "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+      "error": "ConnectTimeout: timed out"
+    }
+  ],
+  "reference_epoch": "J2000",
+  "reference_ra_deg": 133.81890825,
+  "reference_dec_deg": -7.247048000000001,
+  "pm_ra_cosdec_mas_yr": -8123.7,
+  "pm_dec_mas_yr": 673.2,
+  "proper_motion_applied": true,
+  "requested_epoch_jyear": 2026.5,
+  "ra_deg": 133.75862791900516,
+  "dec_deg": -7.242088534453036,
+  "coordinate_epoch_jyear": 2026.5,
+  "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+  "retrieved_at_utc": "2026-11-06T01:30:19.761693+00:00"
+}

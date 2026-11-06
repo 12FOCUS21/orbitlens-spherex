@@ -20,7 +20,7 @@ function pairs(manifest: Manifest, mode: Mode): number[][] {
 }
 
 function suggested(manifest: Manifest, mode: Mode): number[] {
-  return mode === 'lightcurve' ? manifest.frames.map((_, i) => i) : pairs(manifest, mode)[0] ?? []
+  return mode === 'lightcurve' ? manifest.frames.slice(0, 16).map((_, i) => i) : pairs(manifest, mode)[0] ?? []
 }
 
 export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manifestUrl: string }) {
@@ -33,6 +33,7 @@ export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manife
   const available = pairs(manifest, mode)
   function selectionIssue(indices: number[]): string {
     if (!indices.length) return 'Selecciona al menos una observación.'
+    if (indices.length > 16) return 'Selecciona como máximo 16 observaciones.'
     if (mode === 'lightcurve') return ''
     if (mode === 'difference' && indices.length !== 2) return 'La diferencia necesita exactamente dos imágenes. Elige una pareja disponible.'
     if (mode === 'stack' && indices.length < 2) return 'El apilado necesita al menos dos imágenes.'
@@ -77,10 +78,10 @@ export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manife
     </>}
     <fieldset disabled={busy}><legend>Observaciones · orden de selección: {selected.map(i => i + 1).join(', ') || 'ninguna'}</legend>
       <div className="analysis-selection">{manifest.frames.map((frame, i) => <label key={i}>
-        <input type="checkbox" checked={selected.includes(i)} onChange={() => { reset(); setSelected(previous => previous.includes(i) ? previous.filter(n => n !== i) : [...previous, i]) }} />
+        <input type="checkbox" checked={selected.includes(i)} disabled={!selected.includes(i) && selected.length >= 16} onChange={() => { reset(); setSelected(previous => previous.includes(i) ? previous.filter(n => n !== i) : [...previous, i]) }} />
         {i + 1}. {frame.date_utc.replace('T', ' ')} · {frame.wavelength_at_target.central_um?.toFixed(3) ?? '?'} µm
       </label>)}</div>
-      {mode === 'lightcurve' && <button type="button" onClick={() => { reset(); setSelected(manifest.frames.map((_, i) => i)) }}>Seleccionar todas</button>}
+      {mode === 'lightcurve' && <button type="button" onClick={() => { reset(); setSelected(manifest.frames.slice(0, 16).map((_, i) => i)) }}>Seleccionar hasta 16</button>}
     </fieldset>
     {issue && <p className="notice" role="status">{issue}</p>}
     <button type="button" disabled={busy || !!issue} onClick={() => void calculate()}>{busy ? 'Calculando…' : 'Calcular'}</button>

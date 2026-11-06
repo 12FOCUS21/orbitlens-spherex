@@ -1,5 +1,16 @@
 # PLAN — Planet X and SPHEREx (NASA Space Apps 2026)
 
+## Estado vigente — 2026-11-06
+
+- 72 pruebas Python pasan, 3 avisos conocidos; TypeScript/Vite compilan.
+- Demo: cinco manifiestos ready, 60 PNG, 60 FITS, cinco GIF y cinco target.json.
+- Corregidos cachés VOT/FITS defectuosos, errores HTTP de análisis, validación de
+  entradas/manifiestos, claves con máscaras, caché negativa de 60 s y limpieza.
+- Render solicita proxies de confianza explícitos; falta validar cuotas reales
+  desde dos conexiones y resistencia a X-Forwarded-For falsificado en producción.
+- Las cifras y restricciones de ejecución que siguen son registros históricos,
+  no el estado vigente. QA visual/científica de los modos de Etapa 5 sigue pendiente.
+
 > **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
 > - Estado: ETAPAS 1, 2 y 3 completadas: datos, pipeline y web local.
 >   Pipeline 0.2.2: 18 pruebas pasan; cinco presets con 12 frames cada uno.
@@ -239,11 +250,11 @@ no es un límite duro. Configuración y validación pública detalladas en DEPLO
   React. Diferencia sobre FITS, media por época de hasta siete días y curva del
   píxel central con null para máscaras. Compatibilidad espectral aproximada
   comprobada entre todas las parejas. Decisiones en SCIENCE.md.
-- Frontend compilado; once pruebas nuevas preparadas (51 en total previstas).
+- Frontend compilado; previsión histórica de 51 pruebas, sustituida por el estado vigente anterior.
   Pendiente ejecución Python del usuario y QA real de STAGE5_QA.md. No cerrar
   las casillas siguientes hasta esa validación.
 - [ ] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")
-- [ ] Modo Pila: suma de frames por época y por detector (mejora señal/ruido, lo que pide el enunciado)
+- [x] Modo Pila: media de valores válidos por píxel, por detector y época (máximo siete días, al menos dos contribuciones; mejora de señal/ruido no cuantificada)
 - [ ] Curva de luz (brillo vs. fecha del píxel central) — probar con RW Aurigae y R Draconis
 
 ## ETAPA 6 — Bandas + compartir + producción

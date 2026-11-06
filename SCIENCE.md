@@ -93,6 +93,9 @@ Fuente de las definiciones: [IRSA, flags de SPHEREx](https://irsa.ipac.caltech.e
 La rejilla común es TAN/ICRS, centrada en las coordenadas solicitadas, con píxeles
 de 6.15 arcsec y norte arriba/este a la izquierda al mostrar los PNG. Los FITS
 conservan su origen convencional; los PNG se invierten verticalmente.
+Las nuevas rejillas tienen un número impar de píxeles: el objetivo coincide con
+el píxel central usado por calidad y curva de luz. La clave de caché distingue
+esta política de las rejillas previas; no se alteran los FITS de los presets históricos.
 
 Se pide un recorte con margen para poder rotar las esquinas del detector. La
 reproyección es bilineal y trabaja con la WCS celestial, incluida la distorsión

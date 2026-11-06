@@ -1,0 +1,23 @@
+{
+  "name": "RW Aur",
+  "main_id": "V* RW Aur",
+  "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+  "server_failures": [
+    {
+      "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+      "error": "ConnectTimeout: timed out"
+    }
+  ],
+  "reference_epoch": "J2000",
+  "reference_ra_deg": 76.95652603458333,
+  "reference_dec_deg": 30.401438173888888,
+  "pm_ra_cosdec_mas_yr": 7.23,
+  "pm_dec_mas_yr": -20.33,
+  "proper_motion_applied": true,
+  "requested_epoch_jyear": 2026.5,
+  "ra_deg": 76.95658773973359,
+  "dec_deg": 30.4012885224855,
+  "coordinate_epoch_jyear": 2026.5,
+  "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+  "retrieved_at_utc": "2026-11-06T01:32:13.175562+00:00"
+}

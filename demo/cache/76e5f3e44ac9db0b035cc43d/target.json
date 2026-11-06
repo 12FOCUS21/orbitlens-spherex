@@ -1,0 +1,23 @@
+{
+  "name": "Barnard's Star",
+  "main_id": "NAME Barnard's star",
+  "source": "https://simbad.harvard.edu/simbad/sim-tap/sync",
+  "server_failures": [
+    {
+      "server": "https://simbad.cds.unistra.fr/simbad/sim-tap/sync",
+      "error": "ConnectTimeout: timed out"
+    }
+  ],
+  "reference_epoch": "J2000",
+  "reference_ra_deg": 269.4520769586187,
+  "reference_dec_deg": 4.693364966576667,
+  "pm_ra_cosdec_mas_yr": -801.551,
+  "pm_dec_mas_yr": 10362.394,
+  "proper_motion_applied": true,
+  "requested_epoch_jyear": 2026.5,
+  "ra_deg": 269.4461561544679,
+  "dec_deg": 4.7696436297734275,
+  "coordinate_epoch_jyear": 2026.5,
+  "caveat": "Movimiento propio lineal; sin paralaje anual ni velocidad radial.",
+  "retrieved_at_utc": "2026-11-06T01:16:21.015988+00:00"
+}

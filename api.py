@@ -16,7 +16,7 @@ import time
 import uuid
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path, PureWindowsPath
 
@@ -25,12 +25,15 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, model_validator
+from astropy.io.fits.verify import VerifyError
 
 from coordinates import parse_coordinates
 from archive_config import COLLECTIONS
 from disk_cache import trim
 from analysis_modes import AnalysisInput, analyze
-from spherex_pipeline import PIPELINE_VERSION, PipelineConfig, build_sequence, fingerprint, write_json
+from spherex_pipeline import PIPELINE_VERSION, PipelineConfig, build_sequence, fingerprint, write_json, sequence_key
+import spherex_pipeline as pipeline
+from manifest_schema import Manifest
 from targets import PRESETS, resolve_target
 
 BASE = Path(__file__).resolve().parent
@@ -48,6 +51,13 @@ class SearchInput(BaseModel):
     fov: float = Field(default=5, ge=1, le=30)
     frames: int = Field(default=12, ge=1, le=16, strict=True)
     detector: str | None = Field(default=None, pattern=r"^SPHEREx-D[1-6]$")
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_booleans(cls, value):
+        if isinstance(value, dict) and any(isinstance(value.get(key), bool) for key in ("ra", "dec", "fov")):
+            raise ValueError("RA, Dec y FOV no admiten booleanos.")
+        return value
 
     @model_validator(mode="after")
     def target_choice(self):
@@ -68,11 +78,7 @@ class SearchInput(BaseModel):
 
 
 def config_key(config: PipelineConfig) -> str:
-    # Unificar 5 y 5.0 sin redondear las coordenadas científicas.
-    values = asdict(config)
-    for name in ("ra", "dec", "fov", "min_coverage"):
-        values[name] = float(values[name])
-    return fingerprint({"parameters": values, "collections": COLLECTIONS, "version": PIPELINE_VERSION})
+    return sequence_key(config)
 
 
 @dataclass
@@ -135,22 +141,52 @@ class JobManager:
         except OSError:
             logger.exception("No se pudo completar la limpieza de caché.")
         finally:
+            # También reconciliar después de una eliminación parcial interrumpida.
+            missing = {key for key, (path, _) in self.results.items() if not path.is_file()}
+            self.results = {key: value for key, value in self.results.items() if key not in missing}
+            self.cache = {key: value for key, value in self.cache.items() if value not in missing}
+            self.presets = {key: value for key, value in self.presets.items() if value["result_id"] not in missing}
             self.maintenance = False
 
     def touch(self, result_id):
-        self.results[result_id][0].parent.touch()
+        try:
+            directory = self.results[result_id][0].parent
+            if not directory.is_dir():
+                raise FileNotFoundError(directory)
+            os.utime(directory, None)  # No crea nada si desaparece entre comprobaciones.
+        except (FileNotFoundError, NotADirectoryError):
+            self.results.pop(result_id, None)
+            self.cache = {key: value for key, value in self.cache.items() if value != result_id}
+            self.presets = {key: value for key, value in self.presets.items() if value["result_id"] != result_id}
+            raise HTTPException(404, "Resultado expirado. Repite la búsqueda.")
 
     def disk_lock(self, key):
         with self.lock_guard:
             return self.locks.setdefault(key, threading.Lock())
+
+    def cached_result(self, key):
+        result_id = self.cache.get(key)
+        if result_id:
+            path, manifest = self.results[result_id]
+            if not path.is_file() or (manifest["status"] != "ready" and time.time() - path.stat().st_mtime >= 60):
+                self.cache.pop(key, None)
+                return None
+        return result_id
 
     def register(self, path: Path):
         path = path.resolve()
         if path.parent.parent != self.cache_root.resolve() or not RESULT_ID.fullmatch(path.parent.name):
             raise ValueError("Ruta de resultado inválida.")
         manifest = json.loads(path.read_text(encoding="utf-8"))
-        if manifest.get("pipeline_version") != PIPELINE_VERSION or manifest.get("status") not in TERMINAL:
+        Manifest.model_validate(manifest)
+        if (manifest["schema_version"] != 1 or manifest["pipeline_version"] != PIPELINE_VERSION
+                or manifest["status"] not in TERMINAL
+                or manifest["quality_policy"]["mask_bits"] != list(pipeline.MASK_BITS)):
             raise ValueError("Manifiesto incompatible.")
+        config = PipelineConfig(**manifest["parameters"])
+        cache_key = config_key(config)
+        if manifest["status"] == "ready" and len(manifest["frames"]) < min(3, config.frames):
+            raise ValueError("Secuencia ready sin suficientes frames.")
         for frame in manifest["frames"]:
             for key in ("image", "aligned_fits"):
                 asset = (path.parent / frame[key]).resolve()
@@ -158,8 +194,8 @@ class JobManager:
                     raise ValueError("Artefacto ausente o fuera del resultado.")
         result_id = path.parent.name
         self.results[result_id] = (path, manifest)
-        if manifest["status"] == "ready" and tuple(manifest.get("collections", COLLECTIONS)) == COLLECTIONS:
-            self.cache[config_key(PipelineConfig(**manifest["parameters"]))] = result_id
+        if tuple(manifest["collections"]) == COLLECTIONS:
+            self.cache[cache_key] = result_id
         return result_id
 
     def load_cache(self):
@@ -222,13 +258,13 @@ class JobManager:
         target = self.known_target(body)
         config = self.config(body, target) if target or body.ra is not None else None
         key = config_key(config) if config else fingerprint(body.model_dump())
-        result_id = self.cache.get(key) if config else None
+        result_id = self.cached_result(key) if config else None
         if self.maintenance and result_id not in {p["result_id"] for p in self.presets.values()}:
             raise HTTPException(429, "Caché en mantenimiento. Espera unos segundos o abre un campo precargado.",
                                 headers={"Retry-After": "5"})
         if result_id:
             self.touch(result_id)
-            job = Job(uuid.uuid4().hex, key, body, state="ready", message="Secuencia recuperada de caché.",
+            job = Job(uuid.uuid4().hex, key, body, state=self.results[result_id][1]["status"], message="Resultado recuperado de caché.",
                       result_id=result_id, target=target, cached=True, finished=time.monotonic())
             self.jobs[job.id] = job
             return self.status(job)
@@ -282,7 +318,7 @@ class JobManager:
                 job.state, job.message = "searching", "Consultando y alineando observaciones; puede tardar varios minutos…"
                 config = self.config(job.body, job.target)
                 # Una resolución de nombre puede conducir a una secuencia ya indexada.
-                result_id = self.cache.get(config_key(config))
+                result_id = self.cached_result(config_key(config))
                 if result_id:
                     job.cached = True
                 else:
@@ -377,12 +413,20 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
 
     @app.get("/api/results/{result_id}/manifest")
     async def manifest(result_id: str):
-        _, source = result(result_id)
+        path, source = result(result_id)
         # Enlaces por índice: nunca se sirve el directorio completo de datos.
-        value = {**source, "frames": [{**frame,
+        value = {**source, "queries": {name: {**query, **({"error": "No se pudo consultar la colección."} if "error" in query else {})}
+                                       for name, query in source["queries"].items()},
+                 "failures": [{**failure, "error": "No se pudo procesar el recorte."} for failure in source["failures"]],
+                 "frames": [{**frame,
+                 "wavelength_at_target": {**frame["wavelength_at_target"], **({"error": "Información espectral no disponible."} if "error" in frame["wavelength_at_target"] else {})},
                  "image_url": f"/api/results/{result_id}/frames/{i}.png",
                  "fits_url": f"/api/results/{result_id}/aligned/{i}.fits"}
                  for i, frame in enumerate(source["frames"])]}
+        if source.get("preview", {}).get("image") == "preview.gif" and (path.parent / "preview.gif").is_file():
+            value["preview"] = {**source["preview"], "image_url": f"/api/results/{result_id}/preview.gif"}
+        else:
+            value.pop("preview", None)
         return JSONResponse(value)
 
     @app.post("/api/results/{result_id}/analysis")
@@ -411,7 +455,7 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
                     raise
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        except (OSError, KeyError, TypeError):
+        except (OSError, KeyError, TypeError, VerifyError):
             logger.exception("No se pudo analizar el resultado %s", result_id)
             raise HTTPException(422, "No se pudo leer la secuencia alineada. Repite la búsqueda.")
         finally:
@@ -426,6 +470,20 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
         if not 0 <= index < len(source["frames"]):
             raise HTTPException(404, "Frame desconocido.")
         return FileResponse(path.parent / source["frames"][index]["image"], media_type="image/png")
+
+    @app.get("/api/results/{result_id}/preview.gif")
+    async def preview(result_id: str):
+        path, source = result(result_id)
+        if source.get("preview", {}).get("image") != "preview.gif" or not (path.parent / "preview.gif").is_file():
+            raise HTTPException(404, "Vista previa no disponible.")
+        return FileResponse(path.parent / "preview.gif", media_type="image/gif")
+
+    @app.get("/api/results/{result_id}/target.json")
+    async def target(result_id: str):
+        path, _ = result(result_id)
+        if not (path.parent / "target.json").is_file():
+            raise HTTPException(404, "Metadatos de objetivo no disponibles.")
+        return FileResponse(path.parent / "target.json", media_type="application/json")
 
     @app.get("/api/results/{result_id}/aligned/{index}.fits")
     async def aligned(result_id: str, index: int):

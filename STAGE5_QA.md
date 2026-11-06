@@ -1,8 +1,8 @@
 # Etapa 5 — comparación exploratoria
 
-Implementada; pendiente ejecutar Python y comprobar los modos con datos reales.
-TypeScript/Vite compilan. El agente no puede ejecutar el Python instalado del
-usuario y no atribuye a sí mismo una validación científica o visual en navegador.
+Implementada; suite Python ejecutada localmente: **72 pruebas pasan** (2026-11-06),
+con 3 avisos conocidos. TypeScript/Vite compilan. Sigue pendiente comprobar los
+modos visualmente con datos reales; las pruebas no sustituyen validación científica.
 
 ## Validación local
 
@@ -12,7 +12,7 @@ npm.cmd --prefix frontend run build
 .\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-Suite prevista: 52 pruebas, incluidas doce nuevas de análisis. Verifican signo
+Suite actual: 72 pruebas, incluidas doce de análisis y veinte regresiones de errores. Verifican signo
 de la diferencia, máscaras, denominador de la media, color y orientación del PNG,
 ceros frente a ausentes, incompatibilidad espectral, épocas, duplicados, WCS,
 ausencia de cobertura, validación HTTP y límite de solicitudes.
@@ -23,7 +23,7 @@ MJD-OBS diferentes no deben invalidar la alineación. Una prueba específica cub
 ese caso y otra conserva el rechazo cuando cambia CRVAL1.
 La interfaz enumera parejas compatibles, permite intercambiar A/B y bloquea el
 cálculo de selecciones incompatibles con una explicación previa. Compilación
-TypeScript/Vite correcta; suite Python pendiente de ejecutar por el usuario.
+TypeScript/Vite correcta; suite Python ejecutada y correcta.
 
 ## Revisión manual
 

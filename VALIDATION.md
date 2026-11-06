@@ -1,5 +1,15 @@
 # Validación — Etapa 2
 
+## Estado actual — 2026-11-06
+
+Suite local: **72 pruebas correctas**, 3 avisos conocidos; TypeScript/Vite compilan.
+El bundle `demo/cache` contiene cinco manifiestos ready con 12 frames cada uno,
+60 PNG, 60 FITS, cinco GIF y cinco target.json. Los GIF/target faltaban en el
+bundle anterior: se incorporaron durante la corrección de robustez, sin nuevas
+consultas a IRSA. No hay verificación nueva de producción ni QA visual automatizada.
+
+## Registro histórico de la validación científica
+
 La ejecución del usuario, registrada el 2026-11-06 a las 01:35 UTC, completó
 los cinco presets con el pipeline **0.2.2**. El agente revisó los manifiestos,
 la existencia de los artefactos y una muestra de PNG locales. Esta validación
@@ -13,7 +23,7 @@ variabilidad de las fuentes.
 .\.venv\Scripts\python.exe build_sequence.py --verify-presets
 ```
 
-Las **18 pruebas** pasaron. Incluyen selección temporal, deduplicación,
+Las **18 pruebas de aquella etapa** pasaron. Incluyen selección temporal, deduplicación,
 orientación WCS, alineación de una fuente sintética con detectores rotados,
 escala global, transparencia de máscaras, caché, fallos de red SIMBAD,
 propagación de movimiento propio y separación de SIP celestial/espectral.
@@ -32,8 +42,9 @@ como movimiento propio sin paralaje anual ni velocidad radial.
 | RW Aurigae | D5 | QR2, QR3 | 12 | 12/12 | 2025-09-08 a 2026-09-15 |
 | R Draconis | D1 | QR2, QR2 deep, QR3 deep | 12 | 12/12 | 2025-06-06 a 2026-09-27 |
 
-Se comprobaron los **60 PNG y 60 FITS alineados**, además de las cinco vistas
-previas GIF. No faltan artefactos, todos los frames están ordenados por MJD y
+Se comprobaron los **60 PNG y 60 FITS alineados**. La afirmación anterior de que
+también se habían comprobado cinco GIF en el bundle era incorrecta: faltaban.
+Ahora están incluidos. Todos los frames están ordenados por MJD y
 las 60 lecturas espectrales tienen valores sin error registrado.
 
 Los presets se resolvieron en el mirror SIMBAD de Harvard, después de timeouts
@@ -82,7 +93,7 @@ de esta ejecución están en:
 | rw-aur | `ca9f5467e482348cb3659aac/` |
 | r-dra | `47356868d75d0ac3d8abcaf4/` |
 
-Los datos generados permanecen fuera de los archivos de código del repositorio.
+Los datos originales permanecen en `data/`; el bundle portable se incluye en `demo/cache`.
 Los manifiestos conservan URLs de IRSA, parámetros, fechas de consulta, WCS,
 máscaras, intervalos de visualización y versión del pipeline. Consultar
 [SCIENCE.md](SCIENCE.md) para la política de procesamiento y sus fuentes.

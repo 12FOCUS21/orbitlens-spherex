@@ -36,8 +36,12 @@ limitaciones claras, para público general, docentes y aficionados.
 
 ## Estado
 
-**Etapas 1 y 2 completadas: acceso a datos y pipeline temporal.** Las 18 pruebas
-pasan y se generaron cinco secuencias reales de 12 frames con PNG, FITS alineados,
+**Verificación local actual (2026-11-06): 72 pruebas Python pasan**, con 3 avisos;
+TypeScript y Vite compilan. Se han añadido 20 pruebas de regresión de errores.
+La verificación del proxy y de las cuotas por visitante en Render sigue pendiente.
+
+**Etapas 1 y 2 completadas: acceso a datos y pipeline temporal.** Se generaron
+cinco secuencias reales de 12 frames con PNG, FITS alineados,
 GIF y manifiestos. La validación cubre el procesamiento de los campos; no
 confirma movimiento ni detectabilidad de los objetos. Los resultados y las
 limitaciones de calidad están en [VALIDATION.md](VALIDATION.md).
@@ -51,12 +55,12 @@ documentada en SCIENCE.md.
 **Etapa 3 completada y aceptada funcionalmente en localhost:** API FastAPI de trabajos
 con polling y web React + Vite + TypeScript. Incluye caché primero, cola,
 límites por IP, presets y reproductor canvas con avisos científicos. La terminal
-del usuario confirmó 30 pruebas correctas, compilación TypeScript/Vite y arranque
+del usuario confirmó entonces 30 pruebas correctas (registro histórico), compilación TypeScript/Vite y arranque
 de Uvicorn. La página y las 12 imágenes de Barnard respondieron HTTP 200.
 El usuario confirmó manualmente el funcionamiento de los controles del reproductor.
 La herramienta de navegador del agente falló al leer la página; no se atribuye
 una verificación visual automatizada. La regresión ampliada y móvil sigue
-documentada en STAGE3_QA.md. La siguiente etapa es el despliegue público.
+documentada en STAGE3_QA.md. El despliegue público se describe en DEPLOYMENT.md.
 
 ## Etapa 3: ejecutar la web local
 
@@ -135,9 +139,10 @@ Usar **un solo proceso/worker**: cola y límites viven en memoria; los trabajos
 en curso no sobreviven a un reinicio. Los resultados en disco sí. Los trabajos
 terminados se purgan al recibir nuevas búsquedas (una hora; hasta unos 256
 registros). Al apagar se cancelan los trabajos en cola y se espera a los que
-ya están ejecutándose. Todavía no se aplica caducidad ni limpieza LRU del disco.
+ya están ejecutándose. La API aplica limpieza LRU con presupuesto blando de 2 GiB,
+retención mínima de una hora y protección de presets y trabajos vigentes.
 Tras un proxy de despliegue, configura Uvicorn para confiar cabeceras de IP
-únicamente desde ese proxy. La configuración pública se revisará en la Etapa 4.
+únicamente desde ese proxy; consulta DEPLOYMENT.md para la comprobación pendiente.
 
 Revisión manual y estado de verificación: [STAGE3_QA.md](STAGE3_QA.md).
 Referencias de implementación: [ciclo de vida FastAPI](https://fastapi.tiangolo.com/advanced/events/),
@@ -234,12 +239,12 @@ Créditos: NASA/JPL-Caltech; datos SPHEREx alojados por IRSA.
 
 ## Etapa 2: pipeline científico
 
-Pipeline **0.2.2 validado** con 18 pruebas y 12 frames reales para cada uno de
+Pipeline **0.2.2**, con 12 frames reales para cada uno de
 los cinco presets. La WCS celestial conserva SIP y la WCS espectral lo excluye.
 Barnard, RW Aur y R Dra tienen el centro enmascarado en los 12 frames; Epsilon
 Indi B, en 2 de 12; WISE 0855, en ninguno. Estos resultados validan cobertura y
 procesamiento; la identificación y visibilidad de las fuentes siguen pendientes.
-Python debe ejecutarse desde tu terminal.
+La suite actual se puede ejecutar con los comandos siguientes.
 
 Actualizar dependencias y ejecutar todas las pruebas, sin consultas externas:
 
@@ -282,19 +287,29 @@ Cada ejecución indica la carpeta de salida en `data/cache/`, con:
   escala global, longitud de onda del centro y calidad por frame.
 - `frames/*.png`: imágenes RGBA, alineadas y con escala visual compartida.
 - `aligned/*.fits`: brillo superficial reproyectado, FLAGS y mapa VALID.
-- `preview.gif`: animación auxiliar de QA, con fecha y detector.
-- `target.json`: coordenadas de referencia y procedencia de la resolución.
+- `preview.gif`: animación auxiliar de QA, con fecha y detector (si hay frames).
+- `target.json`: coordenadas ICRS de referencia; el CLI y el bundle añaden la
+  procedencia de resolución cuando existe. La API genera al menos las coordenadas.
+
+La API sirve los auxiliares en `/api/results/{id}/preview.gif` y
+`/api/results/{id}/target.json`. El manifiesto añade `preview.image_url` cuando
+la vista previa está disponible. El bundle antiguo no incluía estos auxiliares;
+ahora `prepare_deploy.py` los copia o reconstruye sin red.
 
 Los recortes originales y las respuestas de consulta se conservan en
-`data/raw/`. Las secuencias listas se reutilizan por clave de parámetros y
-versión del pipeline; `--refresh` vuelve a consultar y descargar conservando las
-secuencias previas. Las fechas de consulta quedan registradas. Aún no se aplica
-limpieza LRU ni caducidad automática de caché.
+`data/raw/`. Las secuencias listas se reutilizan por parámetros, colecciones,
+versión, política de máscaras y rejilla. `--refresh` vuelve a consultar y descargar
+conservando secuencias previas. Las consultas VOT válidas caducan a los siete días;
+las corruptas se invalidan inmediatamente. Los estados `partial`, `empty` y `error`
+se reutilizan durante 60 segundos, sin prolongar ese plazo con cada lectura.
+La limpieza de disco de la API también cubre targets, day1 y temporales huérfanos.
 
 Opciones: `--fov` (1–30 arcmin), `--frames` (1–16), `--maxrec` (hasta 10000 por
 colección), `--epoch` (año juliano), `--detector`, `--raw-root` y `--cache-root`.
 El detector automático prioriza diversidad de fechas; la lista podría estar
-truncada por MAXREC. Si quedan menos de tres frames, se informa `partial`.
+truncada por MAXREC. Si quedan menos de tres frames, se informa `partial`, salvo
+que se hayan solicitado y obtenido uno o dos; en ese caso se informa `ready`,
+aunque el reproductor sigue requiriendo tres para animar.
 Una secuencia `ready` puede tener menos frames de los solicitados si no hay
 suficientes recortes válidos; el manifiesto conserva los fallos.
 Un centro enmascarado no descarta todo el frame: sus píxeles permanecen

@@ -13,3 +13,7 @@ services:
         value: 22.16.0
       - key: ORBITLENS_REQUIRE_PRESETS
         value: "1"
+      # Configurar en Render las IP/CIDR reales del proxy antes de desplegar.
+      # No asumir loopback ni confiar indiscriminadamente en '*'.
+      - key: ORBITLENS_TRUSTED_PROXIES
+        sync: false

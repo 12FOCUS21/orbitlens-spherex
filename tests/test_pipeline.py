@@ -197,7 +197,7 @@ class PipelineTests(unittest.TestCase):
                 with fits.open(path.parent / frame["aligned_fits"]) as hdul:
                     self.assertIn("FLAGS", hdul)
                     self.assertIn("VALID", hdul)
-                    self.assertEqual(hdul[0].data.shape, (10, 10))
+                    self.assertEqual(hdul[0].data.shape, (11, 11))
             self.assertTrue((path.parent / "preview.gif").exists())
             calls = counts["calls"]
             self.assertEqual(build_sequence(config, raw_root=raw_root, cache_root=cache_root, client=client), path)
@@ -208,7 +208,7 @@ class PipelineTests(unittest.TestCase):
             for queries, expected in (({"spherex_qr3": {"rows": 0}}, "empty"),
                                       ({"spherex_qr3": {"error": "timeout"}}, "error")):
                 with patch("spherex_pipeline.query_observations", return_value=([], queries)):
-                    path = build_sequence(PipelineConfig(10, 20), client=client,
+                    path = build_sequence(PipelineConfig(10, 20), client=client, refresh=True,
                                           cache_root=Path(directory), raw_root=Path(directory))
                     self.assertEqual(json.loads(path.read_text())["status"], expected)
 

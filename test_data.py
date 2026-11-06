@@ -13,6 +13,7 @@ import json
 import math
 import sys
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -88,9 +89,15 @@ def query_collection(client: httpx.Client, collection: str, args: argparse.Names
         try:
             response = client.get(SIA_URL, params=params)
             response.raise_for_status()
-            # Conservar la respuesta exacta para diagnosticar cambios de formato.
-            (args.output / f"query_{collection}.vot").write_bytes(response.content)
             rows = parse_sia_votable(response.content, collection)
+            # Publicar solo respuestas válidas, sin dejar VOT truncados al interrumpir.
+            path = args.output / f"query_{collection}.vot"
+            temporary = path.with_name(f"{path.name}.{uuid.uuid4().hex}.part")
+            try:
+                temporary.write_bytes(response.content)
+                temporary.replace(path)
+            finally:
+                temporary.unlink(missing_ok=True)
             print(f"{collection}: {len(rows)} filas" +
                   (" (MAXREC alcanzado; lista posiblemente truncada)" if len(rows) >= args.maxrec else ""))
             return rows
