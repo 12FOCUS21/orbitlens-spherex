@@ -17,9 +17,14 @@
 > - Stack: React+Vite servido por FastAPI (UN servicio en Render). Deploy temprano (etapa 4).
 > - Equipo: el usuario programa solo etapas 1–7; etapas 8–9 (14–15 nov, hackathon) los 5 juntos
 >   (QA fantasma, video, pitch, submission). Compañeros SIN experiencia técnica.
-> - Siguiente paso concreto: ETAPA 3, API de trabajos con polling y reproductor web.
->   Reutilizar los presets de data/cache/preset_verification.json y mostrar los
->   avisos de calidad y límites espectrales de los manifiestos.
+> - ETAPA 3 implementada: api.py, coordinates.py y frontend React/Vite/TypeScript.
+>   12 pruebas nuevas de API (30 en total), pendientes de ejecutar. La instalación
+>   npm del agente falló por EACCES al registro; la compilación y QA visual quedan
+>   pendientes en la terminal del usuario. No marcar la etapa como validada aún.
+>   Comandos en README.md y lista de revisión en STAGE3_QA.md.
+> - Siguiente paso concreto: instalar dependencias, ejecutar las 30 pruebas,
+>   compilar frontend y abrir localhost:8000. Los cinco presets se cargan desde
+>   data/cache/preset_verification.json sin consultas externas al arrancar.
 > - Consultar SIA en VOTABLE con Astropy: el CSV remoto contiene JSON sin escapar.
 >   IMAGE es 2D (49×49 en el recorte probado); no es un cubo espectral.
 > - Fuentes contextuales del reto en esta carpeta: `chat.md` (conversación previa con otra
@@ -173,19 +178,34 @@ SOURCE y FULLSAMPLE; los problemas instrumentales documentados se enmascaran por
 separado. La política exacta y sus limitaciones se registran en SCIENCE.md.
 
 ## ETAPA 3 — API + web mínima (ya con modelo asincrónico de uso masivo)
-- [ ] `POST /api/search` encola (semáforo máx. 3) → `job_id`; `GET /api/status/{job_id}` para polling
-- [ ] Límite por IP (2 en curso, ~10/min) → HTTP 429 con mensaje amable
-- [ ] `GET /api/presets`
-- [ ] Frontend: formulario (búsqueda por nombre vía SIMBAD + RA/Dec decimal y sexagesimal + FOV)
-- [ ] Player: canvas, play/pausa, slider, velocidad, loop, fecha visible por frame
-- [ ] Mostrar avisos de centro enmascarado y variación espectral del manifiesto;
+- [x] Implementado `POST /api/search` con semáforo máx. 3 → `job_id`; `GET /api/status/{job_id}` para polling
+- [x] Implementado límite por IP (2 en curso, 10/min) → HTTP 429 con mensaje amable
+- [x] Implementado `GET /api/presets`, índice local de resultados y caché primero
+- [x] Frontend preparado: formulario (SIMBAD + RA/Dec decimal y sexagesimal + FOV)
+- [x] Player preparado: canvas, play/pausa, slider, velocidad, loop y fecha por frame
+- [x] Implementados avisos de centro enmascarado y variación espectral del manifiesto;
   `ready` no debe presentarse como detección del objeto.
-- [ ] Estados: buscando / en cola (posición) / vacío (+sugerencias) / parcial / listo / errores claros
+- [x] Implementados estados: resolución / búsqueda / cola con posición / vacío / parcial / listo / error
+- [x] Preparadas 12 pruebas de API sin red y guía STAGE3_QA.md
+- [ ] Ejecutar las 30 pruebas Python y compilar React/Vite en la terminal del usuario
+- [ ] QA local con los cinco presets reales, controles del reproductor y ventana móvil
 - [ ] **Entregable:** la web funciona en localhost con datos reales.
+
+Estado de implementación, aún sin validación de ejecución: `api.py` ejecuta
+SIMBAD y el pipeline síncrono mediante `asyncio.to_thread`, bajo el semáforo.
+Las búsquedas iguales comparten trabajo; las escrituras para un mismo centro
+se serializan en disco. Cola máxima: 32 trabajos activos. Los resultados y sus
+archivos se validan antes de exponer enlaces por índice, sin servir data/raw.
+FastAPI sirve frontend/dist en el mismo origen. Requiere un solo worker porque
+cola y límites son por proceso. Al arrancar se indexan los datos existentes,
+sin warm-up de red. La generación y distribución de presets para despliegue
+nuevo sigue pendiente en Etapa 4. La instalación npm desde el agente falló
+por EACCES al registro; Python sigue restringido. No se afirma que las pruebas
+nuevas pasen ni que Vite compile hasta ejecutarlos desde la terminal del usuario.
 
 ## ETAPA 4 — Despliegue + robustez (PRIMERO El deploy)
 - [ ] Subir a Render/Fly.io. **URL pública viva.**
-- [ ] Parser RA/Dec sexagesimal (Astropy) — aceptar `08h55m10.831s`/`-07d14m42.53s`
+- [x] Parser RA/Dec sexagesimal (Astropy) implementado en Etapa 3; validación pendiente
 - [ ] Caché por cache_key (RA+Dec redondeados + FOV + colecciones + versión pipeline)
 - [ ] Presets pre-cacheados al desplegar (la demo nunca depende de IRSA en vivo)
 - [ ] Config de colecciones/versión → "fácil actualización con nuevos lanzamientos"

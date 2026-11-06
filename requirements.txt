@@ -1,6 +1,9 @@
-# Etapas 1–2: acceso a datos y pipeline científico
+# Etapas 1–3: datos, pipeline y API
 astropy>=7.0,<9
 numpy>=2.0,<3
 Pillow>=11.0,<13
 httpx>=0.28,<1
 reproject>=0.19,<0.22
+fastapi>=0.115,<1
+pydantic>=2.10,<3
+uvicorn>=0.34,<1
