@@ -67,6 +67,10 @@ export function Player({ manifest }: { manifest: Manifest }) {
       <div className="sky-label">{frame.date_utc.slice(0, 10)} <small>UTC</small></div>
       {!frame.quality.center_pixel_valid && <span className="masked-label">Centro enmascarado</span>}
     </div>
+    <label>Ir a una medición por longitud de onda
+      <select value={index} disabled={!ready} onChange={event => { setPlaying(false); setIndex(Number(event.target.value)) }}>
+        {frames.map((item, i) => ({item, i})).sort((a,b) => (a.item.wavelength_at_target.central_um ?? Infinity) - (b.item.wavelength_at_target.central_um ?? Infinity)).map(({item,i}) => <option key={i} value={i}>{item.wavelength_at_target.central_um?.toFixed(3) ?? 'Desconocida'} µm · {item.detector} · {item.date_utc.slice(0,10)} · imagen {i+1}</option>)}
+      </select></label>
     <div className="timeline">
       <label className="sr-only" htmlFor="frame">Observación</label>
       <input id="frame" type="range" min="0" max={frames.length - 1} value={index} disabled={!ready}
@@ -95,6 +99,9 @@ export function Player({ manifest }: { manifest: Manifest }) {
     <p className="quality-note">{frame.quality.center_pixel_valid ? 'El píxel central conserva datos válidos.' : 'El píxel central no puede usarse para evaluar la fuente.'}
       {' '}FLAGS del centro: {frame.quality.center_pixel_flag_names.join(', ') || 'ninguno'}.
       {' '}Los huecos transparentes muestran el fondo cuadriculado.</p>
+    <details className="evidence"><summary>Máscara de calidad de la exposición</summary>
+      <p>Fracción enmascarada en el recorte original: {frame.quality.masked_fraction == null ? 'sin información' : (100*frame.quality.masked_fraction).toFixed(1)+' %'}.</p>
+      <ul>{frame.quality.bits?.map(bit => <li key={bit.bit}>{bit.name} · {(bit.fraction*100).toFixed(1)} % · {bit.masked ? 'excluida' : 'informativa'}</li>)}</ul></details>
     <div className="source-links"><span>{frame.collection}</span><a href={frame.cutout_url} target="_blank" rel="noreferrer">Recorte original · IRSA ↗</a><a href={frame.fits_url}>FITS alineado ↓</a></div>
   </section>
 }

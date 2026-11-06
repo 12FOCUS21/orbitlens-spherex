@@ -1,38 +1,10 @@
 # OrbitLens — SPHEREx Time Atlas
 
-Etapa 5 preparada: diferencia A−B, apilado por época y curva exploratoria del
-píxel central. Ejecución y comprobaciones: [STAGE5_QA.md](STAGE5_QA.md).
+OrbitLens permite comparar observaciones infrarrojas de un mismo campo y revisar qué píxeles admiten una comparación. Incluye cinco campos de demostración de 12 imágenes, búsqueda por coordenadas, reproducción temporal, diferencia A−B, apilado y curva del píxel central.
 
-Etapa 4: despliegue público en https://orbitlens-spherex.onrender.com.
-Preparación, presupuesto de caché, configuración de colecciones, reintentos y
-validación pendiente de las mejoras: [DEPLOYMENT.md](DEPLOYMENT.md).
+[Ver la demo pública](https://orbitlens-spherex.onrender.com) · [Pruebas y pasos de entrega](ENTREGA.md) · [Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
 
-Explorador temporal de imágenes SPHEREx para el reto **Planet X and SPHEREx**
-de NASA Space Apps Challenge 2026.
-
-## La propuesta
-
-**OrbitLens** será una herramienta web pública para explorar una región del cielo
-a través del tiempo. Permitirá ingresar coordenadas RA/Dec en formato decimal o
-sexagesimal, o buscar un objeto por nombre, y reproducir imágenes de SPHEREx como
-una secuencia temporal para explorar posibles objetos en movimiento.
-
-En vez de mostrar una imagen estática, permitirá alternar épocas, superponerlas
-y observar la diferencia visual entre ellas. El producto convertirá 102 bandas
-infrarrojas de SPHEREx en tres recorridos claros: **cambio temporal**,
-**color infrarrojo** y **evidencia científica**.
-
-El alcance previsto incluye comparación de épocas, modos *blink*, deslizador y
-diferencia, apilado, información espectral, superposición de catálogos Gaia/WISE,
-enlaces compartibles y metadatos de calidad y procedencia. Las funciones se
-incorporan por etapas; la primera web y su API están preparadas en la Etapa 3.
-
-El producto no debe afirmar el descubrimiento de Planet X. Su valor es hacer
-detectables, visibles y comprensibles posibles cambios, con evidencia y
-limitaciones claras, para público general, docentes y aficionados.
-
-[Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
-· [Datos SPHEREx](https://science.nasa.gov/open-science/spherex-universe-map/)
+La rama de desarrollo añade enlaces al campo, selección por longitud de onda, desglose de máscaras y acceso a los catálogos del mismo campo en Aladin Lite.
 
 ## Estado
 
@@ -74,7 +46,7 @@ cd frontend
 npm.cmd install
 npm.cmd run build
 cd ..
-.\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1
+.\.venv\Scripts\python.exe start_server.py
 ```
 
 Abrir **http://127.0.0.1:8000**. FastAPI sirve la compilación de React y la API
@@ -83,8 +55,7 @@ No hace falta regenerar las cinco secuencias reales. Al arrancar se indexan
 los manifiestos del pipeline actual en `data/cache/` y se lee
 `data/cache/preset_verification.json`. Los ejemplos indican si están en caché;
 si falta el informe, se pueden recuperar desde el CLI con `--verify-presets`.
-Los datos locales están excluidos del código: aún no están empaquetados para un
-despliegue nuevo. Esa preparación corresponde a la Etapa 4.
+El repositorio incluye los cinco ejemplos en `demo/cache`. El lanzador los copia al directorio de trabajo al arrancar.
 
 Para editar la web con recarga automática, deja el backend anterior abierto y
 usa otra terminal:
@@ -297,12 +268,18 @@ la vista previa está disponible. El bundle antiguo no incluía estos auxiliares
 ahora `prepare_deploy.py` los copia o reconstruye sin red.
 
 Los recortes originales y las respuestas de consulta se conservan en
+<<<<<<< HEAD
 `data/raw/`. Las secuencias listas se reutilizan por parámetros, colecciones,
 versión, política de máscaras y rejilla. `--refresh` vuelve a consultar y descargar
 conservando secuencias previas. Las consultas VOT válidas caducan a los siete días;
 las corruptas se invalidan inmediatamente. Los estados `partial`, `empty` y `error`
 se reutilizan durante 60 segundos, sin prolongar ese plazo con cada lectura.
 La limpieza de disco de la API también cubre targets, day1 y temporales huérfanos.
+=======
+`data/raw/`. Las secuencias listas se reutilizan por clave de parámetros y
+versión del pipeline; `--refresh` vuelve a consultar y descargar conservando las
+secuencias previas. Las fechas de consulta quedan registradas. El servidor libera espacio por antigüedad cuando se supera su presupuesto y protege los ejemplos empaquetados.
+>>>>>>> 6dc7582a2262256874884daa60746ded1bfb38ea
 
 Opciones: `--fov` (1–30 arcmin), `--frames` (1–16), `--maxrec` (hasta 10000 por
 colección), `--epoch` (año juliano), `--detector`, `--raw-root` y `--cache-root`.

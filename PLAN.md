@@ -367,3 +367,6 @@ El usuario ejecutó el empaquetado de los cinco presets y las 32 pruebas: todas 
 
 Cierre posterior de Etapa 4: las mejoras de robustez y la regresión pública indicadas como pendientes en el historial anterior se completaron. Suite: 40 pruebas correctas en 1.241 s. Confirmación pública del usuario: Listo, funciona todo. Próximo trabajo: Etapa 5.
 
+
+## Actualización del 6 de noviembre de 2026
+Resultados reproducibles, alcance de las pruebas públicas y reparto del cierre entre cinco integrantes en [ENTREGA.md](ENTREGA.md).

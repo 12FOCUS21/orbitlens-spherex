@@ -57,3 +57,6 @@ El cálculo corre en un thread bajo el semáforo compartido de tres operaciones.
 Comparte límite de diez solicitudes/minuto y dos operaciones por IP. No crea
 archivos ni requiere nuevas descargas. Mientras se analiza, la limpieza no se
 inicia; la desconexión del cliente no libera el permiso hasta terminar el thread.
+
+## Verificación posterior
+Se ejecutaron los tres modos con los FITS empaquetados y desde Edge. Valores esperados y pasos en [ENTREGA.md](ENTREGA.md).
