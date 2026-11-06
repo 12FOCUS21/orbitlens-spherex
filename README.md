@@ -20,10 +20,13 @@ También pasan 20 casos de navegador en Edge headless (escritorio y 390 px):
 `npm.cmd --prefix frontend run test:e2e`. Esta suite usa Playwright como dependencia
 de desarrollo y un servidor/caché temporales; recompila la app antes de ejecutarse.
 No consulta IRSA ni CDS. Configuración y límites en [STAGE7_QA.md](STAGE7_QA.md).
-La verificación del proxy y de las cuotas por visitante en Render sigue pendiente.
+**MVP exploratorio aceptado funcionalmente:** el usuario confirmó las pruebas
+manuales operativas de cuotas/proxy, CDS y móvil. No se atribuyen a la suite E2E
+ni constituyen una auditoría independiente; detalle en DEPLOYMENT.md.
 La lectura pública del 2026-11-06 confirmó salud/presets, JS/CSS coincidentes con
 el build local y una muestra de PNG/FITS más los cinco GIF/target.json. No incluye
-pruebas de cuota ni de CDS disponible; evidencia y protocolo en DEPLOYMENT.md.
+pruebas de cuota ni de CDS disponible por el agente; la aceptación manual posterior,
+la evidencia y el protocolo están en DEPLOYMENT.md.
 
 La Etapa 7 añade cuatro pruebas del smoke de entrega. Tras compilar el frontend,
 ejecuta `.\.venv\Scripts\python.exe verify_release.py`: verifica mediante HTTP local
@@ -132,7 +135,8 @@ registros). Al apagar se cancelan los trabajos en cola y se espera a los que
 ya están ejecutándose. La API aplica limpieza LRU con presupuesto blando de 2 GiB,
 retención mínima de una hora y protección de presets y trabajos vigentes.
 Tras un proxy de despliegue, configura Uvicorn para confiar cabeceras de IP
-únicamente desde ese proxy; consulta DEPLOYMENT.md para la comprobación pendiente.
+únicamente desde ese proxy; consulta DEPLOYMENT.md para la aceptación manual y el
+protocolo que debe repetirse si cambia el despliegue.
 
 Revisión manual y estado de verificación: [STAGE3_QA.md](STAGE3_QA.md).
 Referencias de implementación: [ciclo de vida FastAPI](https://fastapi.tiangolo.com/advanced/events/),

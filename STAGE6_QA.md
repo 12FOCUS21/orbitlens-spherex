@@ -37,7 +37,7 @@ Las 10 pruebas frontend cubren enlaces y orden espectral, sin nuevas dependencia
 ni consultas remotas. No ejecutan React en un navegador. La suite Python y
 `verify_demo.py` cubren cálculos, máscaras y datos reales empaquetados.
 
-## Regresión manual pendiente para esta versión
+## Guía de regresión manual
 
 La regresión funcional automatizada en Edge de `STAGE7_QA.md` ya comprueba
 enlaces, controles, análisis, calidad y ausencia de desbordamiento a 390 px.
@@ -61,5 +61,8 @@ real ni la comprobación de catálogos disponibles y cuotas en producción.
 - [ ] Repetir enlace, selector y panel de calidad en una ventana de 390 px.
 - [ ] Repetir diferencia, apilado y curva central de `STAGE5_QA.md`.
 
-La verificación de límites por IP tras Render sigue pendiente en
-`DEPLOYMENT.md`. No cerrar este punto con pruebas locales de proxy simulado.
+El usuario confirmó el funcionamiento esperado de las pruebas operativas manuales
+de cuotas/proxy, CDS y móvil, según `DEPLOYMENT.md`. La lista se conserva para
+repetir la regresión; no se dan por ejecutadas una a una todas sus variantes por
+esa confirmación global. No confundir esta aceptación con pruebas locales de
+proxy simulado ni con una auditoría independiente de la infraestructura.

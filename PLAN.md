@@ -3,24 +3,28 @@
 ## Estado vigente — 2026-11-06
 
 - 76 pruebas Python pasan, 3 avisos conocidos; TypeScript/Vite compilan.
-- Etapa 6: enlaces y orden espectral tienen 10 pruebas frontend sin dependencias
-  nuevas. Revisión manual de esta versión en STAGE6_QA.md; no se declara completada.
+- Etapa 6: enlaces y orden espectral tienen 10 pruebas frontend con runner nativo
+  de Node. Implementación del MVP aceptada funcionalmente; no incluye comparación
+  científica conjunta entre detectores. Regresión en STAGE6_QA.md.
 - Etapa 7: smoke HTTP local reproducible en `verify_release.py`, con diez visitas
   concurrentes, artefactos completos, dos campos repetidos y cuota local. Matriz
-  de 15 casos en STAGE7_QA.md; ensayos y validación de producción siguen pendientes.
+  de 15 casos en STAGE7_QA.md; los tres ensayos de presentación siguen pendientes.
 - Regresión funcional local: 20 casos E2E correctos en Edge headless, escritorio
-  y viewport móvil de 390 px, incluidos diez tabs reales. Revisión manual de
-  diseño, CDS disponible, ensayos y proxy de Render siguen pendientes.
+  y viewport móvil de 390 px, incluidos diez tabs reales. El usuario confirmó las
+  pruebas operativas manuales de cuotas/proxy, CDS y móvil; no se atribuyen a E2E.
 - Lectura pública comprobada el 2026-11-06: salud y cinco presets 200; JS/CSS
   coinciden con el build local; diez PNG/FITS muestreados y cinco GIF/target.json
-  accesibles. No se hicieron POST de producción; cuotas y CDS siguen pendientes.
+  accesibles. El agente no hizo POST de producción; aceptación manual posterior
+  del usuario documentada en DEPLOYMENT.md.
 - Demo: cinco manifiestos ready, 60 PNG, 60 FITS, cinco GIF y cinco target.json.
 - Corregidos cachés VOT/FITS defectuosos, errores HTTP de análisis, validación de
   entradas/manifiestos, claves con máscaras, caché negativa de 60 s y limpieza.
-- Render solicita proxies de confianza explícitos; falta validar cuotas reales
-  desde dos conexiones y resistencia a X-Forwarded-For falsificado en producción.
+- MVP exploratorio aceptado funcionalmente por el usuario. Render solicita proxies
+  explícitos; las cuotas entre conexiones y la resistencia a cabeceras falsificadas
+  se aceptaron por confirmación manual, sin auditoría independiente de IP/CIDR.
 - Las cifras y restricciones de ejecución que siguen son registros históricos,
-  no el estado vigente. QA visual/científica de los modos de Etapa 5 sigue pendiente.
+  no el estado vigente. Identidades, detecciones y movimientos no están validados
+  científicamente. Video, ensayos y submission no se consideran terminados.
 
 > **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
 > - Estado: ETAPAS 1, 2 y 3 completadas: datos, pipeline y web local.
@@ -263,7 +267,8 @@ no es un límite duro. Configuración y validación pública detalladas en DEPLO
   comprobada entre todas las parejas. Decisiones en SCIENCE.md.
 - Implementación y cálculos comprobados: 76 pruebas Python y `verify_demo.py`.
   El informe traído por el pull en ENTREGA.md registra una revisión previa en Edge;
-  la regresión visual de esta versión sigue pendiente en STAGE5_QA.md/STAGE6_QA.md.
+  la aceptación funcional manual posterior está en DEPLOYMENT.md. Los detalles de
+  regresión se conservan en STAGE5_QA.md/STAGE6_QA.md.
   Las casillas siguientes describen implementación, no validación científica.
 - [x] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")
 - [x] Modo Pila: media de valores válidos por píxel, por detector y época (máximo siete días, al menos dos contribuciones; mejora de señal/ruido no cuantificada)
@@ -277,14 +282,16 @@ no es un límite duro. Configuración y validación pública detalladas en DEPLO
   El apilado compatible del mismo detector está implementado. Comparación conjunta
   entre detectores pendiente de diseño/validación científica; no se suman pares por número.
 - [x] **Gaia/WISE** (consideración #5): vista Aladin Lite del mismo campo, con
-  catálogos Gaia DR3/AllWISE; comprobación visual/red pendiente, no overlay SPHEREx.
+  catálogos Gaia DR3/AllWISE; funcionamiento aceptado manualmente por el usuario,
+  no overlay SPHEREx ni validación de identidad de fuentes.
 - [x] **Coordenadas en la URL** (consideración #6): `/?ra=&dec=&fov=` carga directo el resultado;
   conserva frames y detector, y respeta opciones de enlaces de preset.
 - [x] **Panel de FLAGS/calidad** por frame (consideración #7): flags aplicados, % de píxeles enmascarados
 - [ ] Repositorio GitHub público + README + licencia + sección "fuentes de datos" (puntúa en el registro)
 - [x] Sección educativa mínima sobre infrarrojo, enanas marrones y comparación de fechas.
 - [x] En README: decisiones de estabilidad (semáforo, límites por IP, caché);
-  validación real del proxy todavía pendiente, sin afirmar cuotas verificadas.
+  comportamiento de cuotas/proxy aceptado manualmente por el usuario, sin
+  atribuir al agente una inspección de configuración o auditoría independiente.
 
 Detalle y regresión manual de Etapa 6: [STAGE6_QA.md](STAGE6_QA.md).
 
@@ -295,9 +302,10 @@ Detalle y regresión manual de Etapa 6: [STAGE6_QA.md](STAGE6_QA.md).
   coordenadas repetidas mediante `verify_release.py`, con resultados en caché.
   No mide capacidad de Render: el servidor E2E tiene cuota elevada exclusivamente
   para pruebas. Configuración, límites y casos en STAGE7_QA.md.
-- [ ] Comprobar cuotas reales en Render desde dos conexiones y con cabeceras
+- [x] Comprobar cuotas reales en Render desde dos conexiones y con cabeceras
   falsificadas, más revisión manual en dispositivo real y CDS disponible.
-  Los GET públicos ya están comprobados; protocolo y evidencia en DEPLOYMENT.md.
+  Aceptación manual del usuario: «Ya he hecho esas pruebas y funciona como debe.»
+  Sin trazas/dispositivos/IP concretas adjuntas; protocolo y límites en DEPLOYMENT.md.
 - [x] Matriz de 15 casos de prueba: presets, ceros, partial controlado, colecciones
   profundas, polos, entradas inválidas y dependencias externas; ejecución manual pendiente.
 - [ ] Descansar.

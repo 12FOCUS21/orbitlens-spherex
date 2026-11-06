@@ -83,10 +83,12 @@ defecto es el de `.venv`; `ORBITLENS_TEST_PYTHON` permite indicar otro ejecutabl
 Salud, cinco presets, frontend y auxiliares respondieron 200. El JS/CSS coincide
 con el build local y se comprobó el primer y último PNG/FITS de cada preset;
 los diez FITS coinciden por SHA-256 con el bundle local. Detalle en DEPLOYMENT.md.
-No se enviaron POST de producción ni se probaron cuotas. La biblioteca de CDS
+El agente no envió POST de producción ni probó cuotas. La biblioteca de CDS
 agotó el tiempo de conexión desde este entorno; no se considera prueba de una
-caída global ni de un defecto del visor. Sigue pendiente abrir Gaia/AllWISE con
-CDS disponible desde una conexión que lo permita.
+caída global ni de un defecto del visor. Posteriormente el usuario confirmó el
+funcionamiento esperado de las pruebas operativas indicadas: cuotas/proxy, CDS
+y móvil. Es aceptación manual, sin trazas o dispositivos adjuntos; no se atribuye
+a la automatización local. Detalle y límites en DEPLOYMENT.md.
 
 ## Matriz de 15 casos
 
@@ -109,12 +111,13 @@ ha comprobado. Registrar versión desplegada, fecha, dispositivo y resultado.
 | 11 | Solicitar y obtener uno o dos frames | Estado ready; animación deshabilitada si hay menos de tres; conservar opciones al compartir. | Pipeline y enlaces probados; navegador con dos frames controlados comprobado |
 | 12 | RA=360, Dec=91, booleanos, minutos=60 o frames=17 | Rechazo 422 en API; URL inválida con mensaje legible sin POST cuando falla validación local. | API y rechazo de enlaces inválidos en navegador comprobados |
 | 13 | Longitud de onda desconocida / bandas incompatibles | Desconocidas al final del selector; no permitir diferencia/apilado incompatible ni inventar bandas. | Orden espectral probado; bloqueo de pareja incompatible en navegador comprobado |
-| 14 | Aladin sin CDS disponible | Mantener visor SPHEREx, mostrar error y enlace externo alternativo; no afirmar catálogos cargados. | Fallo controlado en navegador comprobado; carga correcta con CDS pendiente |
-| 15 | Diez visitas y dos campos repetidos; cuotas | Smoke local correcto. Repetir con diez pestañas; en Render usar dos conexiones y probar cabeceras falsificadas. | HTTP y diez pestañas locales comprobados; Render pendiente |
+| 14 | Aladin sin CDS disponible | Mantener visor SPHEREx, mostrar error y enlace externo alternativo; no afirmar catálogos cargados. | Fallo controlado automatizado; funcionamiento con CDS aceptado manualmente por el usuario |
+| 15 | Diez visitas y dos campos repetidos; cuotas | Smoke local correcto. Repetir con diez pestañas; en Render usar dos conexiones y probar cabeceras falsificadas. | HTTP y diez pestañas locales comprobados; pruebas operativas en Render aceptadas por el usuario |
 
 Repetir los controles de enlaces, selector, FLAGS y análisis a **390 px** siguiendo
 `STAGE6_QA.md`. La suite de navegador comprueba esos controles y el ancho del
-documento; sigue pendiente la revisión manual de diseño, tipografía y dispositivo real.
+documento; el usuario aceptó el funcionamiento manual en móvil. No se registraron
+modelos o tamaños físicos concretos ni una auditoría exhaustiva de diseño/tipografía.
 
 ## Tres ensayos de demo
 
@@ -132,5 +135,6 @@ documento; sigue pendiente la revisión manual de diseño, tipografía y disposi
 | 3 | Pendiente | Pendiente | — |
 
 No se añaden espectros al vuelo ni combinaciones de detectores antes de cerrar
-la regresión y revisar su diseño científico. Las cuotas reales y proxies siguen
-pendientes de la comprobación de `DEPLOYMENT.md`; no se marcan completados aquí.
+la regresión y revisar su diseño científico. Las pruebas operativas de cuotas y
+proxy se aceptaron manualmente por el usuario según DEPLOYMENT.md. Eso no completa
+los tres ensayos ni convierte el MVP en una validación científica o auditoría de seguridad.

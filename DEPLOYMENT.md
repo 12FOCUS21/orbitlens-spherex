@@ -35,10 +35,22 @@ La herramienta de lectura web devolvió inicialmente 503; una petición directa
 confirmó 200. No se atribuye una caída del servicio a ese resultado aislado.
 El acceso directo a la biblioteca de CDS agotó el tiempo de conexión desde este
 entorno. La página de catálogos sí está publicada, pero la carga real de Gaia/
-AllWISE sigue pendiente: ese timeout no demuestra una caída global de CDS.
+AllWISE no pudo comprobarse desde el entorno del agente: ese timeout no demuestra
+una caída global de CDS. La aceptación manual posterior del usuario está debajo.
 
-**Pendiente operativo:** separación de cuotas entre dos conexiones, resistencia
-a `X-Forwarded-For` falsificado, revisión de proxies de confianza y móvil físico.
+## Aceptación operativa manual — 2026-11-06
+
+El usuario confirmó: **«Ya he hecho esas pruebas y funciona como debe.»**, tras
+la lista de comprobaciones operativas de cuotas/proxy, CDS y móvil físico.
+Se registra la aceptación funcional manual del MVP, separada de los GET realizados
+por el agente y de la suite automatizada local.
+
+Se aceptan las pruebas indicadas de límite en una conexión, independencia de otra
+conexión y ausencia de evasión mediante `X-Forwarded-For`, junto con el funcionamiento
+manual de CDS/móvil. No se adjuntaron capturas, trazas HTTP, modelos de dispositivo
+ni valores de IP/CIDR; no se inventan esos detalles. La confirmación no equivale
+a una auditoría independiente de la infraestructura ni garantiza ausencia de bugs.
+El protocolo siguiente se conserva para futuras regresiones.
 
 Registro histórico de Etapa 4: el usuario confirmó 32 pruebas y un bundle de
 126 archivos (anterior a la inclusión de GIF y target.json). El agente intentó consultar la web, `/api/health` y
@@ -119,8 +131,9 @@ primer acceso puede esperar el arranque incluso con presets empaquetados.
   direcciones reales observadas/confirmadas para ese despliegue, no las IP de
   salida del servicio. Fuera de Render, el valor por defecto sigue siendo
   `127.0.0.1`. No se activa `*`: confiar toda la cadena puede permitir falsificar
-  la cuota si el proxy conserva cabeceras del cliente. La configuración efectiva
-  y la separación de visitantes siguen pendientes de comprobar en producción.
+  la cuota si el proxy conserva cabeceras del cliente. El comportamiento operativo
+  entre visitantes fue aceptado manualmente por el usuario; la configuración
+  concreta de IP/CIDR no fue inspeccionada independientemente por el agente.
   Personas detrás de una misma IP pública comparten el límite.
 
 Para comprobar los límites, usa dos conexiones distintas (por ejemplo Wi-Fi y
@@ -177,10 +190,11 @@ prueba. Registrar fecha UTC, versión y resultados sin incluir credenciales.
 
 | Evidencia | Estado |
 | --- | --- |
-| 202 cacheados y undécimo POST 429 en conexión A | Pendiente |
-| Conexión B con otra IP sigue pudiendo abrir el preset | Pendiente |
-| Cabeceras falsificadas desde A no eluden 429 | Pendiente |
-| IP/CIDR configuradas y puerto sin acceso directo no confiable | Pendiente |
+| Límite en conexión A según el protocolo de 202/429 | Funcionamiento esperado confirmado por el usuario; sin traza adjunta |
+| Conexión B independiente del bloqueo de A | Confirmado por el usuario |
+| Cabeceras falsificadas desde A no eluden el límite | Confirmado por el usuario |
+| CDS disponible y uso en móvil físico | Aceptación manual del usuario |
+| IP/CIDR concretas y acceso directo al puerto | Sin inspección independiente ni valores registrados; responsabilidad del operador |
 
 Ejecuta las pruebas tras estos cambios y recompila el frontend:
 

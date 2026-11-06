@@ -24,9 +24,9 @@ del píxel central incluye fondo y fuentes vecinas.
 
 En Edge se ejecutaron los tres análisis desde el visor. A 390 píxeles de ancho el documento cabe en pantalla. Diez pestañas locales cargaron la portada simultáneamente. En el despliegue público se comprobaron la portada, salud, lista de ejemplos y el primer y último PNG de cada una de las cinco secuencias.
 Este párrafo registra la revisión previa incluida en el pull, no una repetición
-de esas comprobaciones para los cambios actuales. La regresión manual de esta
-versión está pendiente en [STAGE6_QA.md](STAGE6_QA.md), igual que la comprobación
-de cuotas por visitante tras el proxy descrita en DEPLOYMENT.md.
+de esas comprobaciones para los cambios actuales. La aceptación manual operativa
+posterior del usuario está registrada en DEPLOYMENT.md; la guía de regresión se
+conserva en [STAGE6_QA.md](STAGE6_QA.md).
 El smoke de `verify_release.py` cubre HTTP concurrente local y caché, sin ejecutar
 un navegador. La matriz de 15 casos y los tres ensayos pendientes están en
 [STAGE7_QA.md](STAGE7_QA.md).
@@ -39,8 +39,13 @@ ni el proxy de producción. Los tres ensayos de presentación siguen pendientes.
 Una comprobación directa de lectura pública el 2026-11-06 confirmó salud y cinco
 presets en 200, frontend JS/CSS idéntico al build local y acceso al primer/último
 PNG/FITS de cada secuencia, cinco GIF y cinco target.json. No se hicieron POST ni
-se verificaron cuotas entre conexiones. La evidencia y el protocolo operativo
-pendiente están en DEPLOYMENT.md.
+se verificaron cuotas entre conexiones por el agente. Posteriormente el usuario
+confirmó: «Ya he hecho esas pruebas y funciona como debe.» Se acepta funcionalmente
+el MVP exploratorio, incluidas las pruebas operativas manuales indicadas de
+cuotas/proxy, CDS y móvil. No hay trazas ni datos de dispositivos adjuntos; no se
+presenta como una auditoría independiente. Evidencia y protocolo en DEPLOYMENT.md.
+Esta aceptación no completa los tres ensayos, el video, la submission ni la
+validación científica de fuentes o las funciones entre detectores fuera del MVP.
 
 ## Ensayo y reparto para cinco integrantes
 
