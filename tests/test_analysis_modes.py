@@ -102,6 +102,13 @@ class AnalysisTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "WCS"):
             self.run_mode("difference", [0, 1])
 
+    def test_different_observation_dates_do_not_change_spatial_grid(self):
+        for index in (0, 1):
+            with fits.open(self.root / f"{index}.fits", mode="update") as hdul:
+                hdul[0].header["MJD-OBS"] = 61000.0 + index * .1
+        result = self.run_mode("difference", [0, 1])
+        self.assertEqual(result["valid_fraction"], 1)
+
     def test_no_common_pixels_is_explicit_error(self):
         with fits.open(self.root / "1.fits", mode="update") as hdul:
             hdul["VALID"].data[:] = 0

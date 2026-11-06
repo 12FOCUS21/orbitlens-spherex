@@ -12,10 +12,18 @@ npm.cmd --prefix frontend run build
 .\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-Suite prevista: 51 pruebas, incluidas once nuevas de análisis. Verifican signo
+Suite prevista: 52 pruebas, incluidas doce nuevas de análisis. Verifican signo
 de la diferencia, máscaras, denominador de la media, color y orientación del PNG,
 ceros frente a ausentes, incompatibilidad espectral, épocas, duplicados, WCS,
 ausencia de cobertura, validación HTTP y límite de solicitudes.
+
+Corrección del comparador: la igualdad de rejilla se comprueba mediante las
+posiciones celestes de los píxeles, no comparando cabeceras como texto. Las fechas
+MJD-OBS diferentes no deben invalidar la alineación. Una prueba específica cubre
+ese caso y otra conserva el rechazo cuando cambia CRVAL1.
+La interfaz enumera parejas compatibles, permite intercambiar A/B y bloquea el
+cálculo de selecciones incompatibles con una explicación previa. Compilación
+TypeScript/Vite correcta; suite Python pendiente de ejecutar por el usuario.
 
 ## Revisión manual
 

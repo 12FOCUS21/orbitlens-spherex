@@ -6,16 +6,21 @@ type Mode = 'difference' | 'stack' | 'lightcurve'
 interface Point { index: number; mjd: number; date_utc: string; value: number | null; wavelength_um: number | null; reason: string | null }
 interface Result { mode: Mode; indices: number[]; unit: string; image?: string; limits?: number[]; valid_fraction?: number; contributors_min?: number; contributors_max?: number; points: Point[]; warnings: string[] }
 
-function suggested(manifest: Manifest, mode: Mode): number[] {
-  if (mode === 'lightcurve') return manifest.frames.map((_, i) => i)
+function pairs(manifest: Manifest, mode: Mode): number[][] {
+  const result: number[][] = []
   for (let i = 0; i < manifest.frames.length; i++) for (let j = i + 1; j < manifest.frames.length; j++) {
     const a = manifest.frames[i], b = manifest.frames[j]
     const x = a.wavelength_at_target, y = b.wavelength_at_target
-    if (a.detector === b.detector && x.central_um && y.central_um && x.width_um && y.width_um &&
+    if (a.detector === b.detector && [x.central_um, y.central_um, x.width_um, y.width_um].every(v => v !== null && Number.isFinite(v) && v > 0) &&
+      x.central_um && y.central_um && x.width_um && y.width_um &&
       Math.abs(x.central_um - y.central_um) <= Math.min(x.width_um, y.width_um) / 2 &&
-      (mode !== 'stack' || Math.abs(a.mjd - b.mjd) <= 7)) return [i, j]
+      (mode !== 'stack' || Math.abs(a.mjd - b.mjd) <= 7)) result.push([i, j])
   }
-  return []
+  return result
+}
+
+function suggested(manifest: Manifest, mode: Mode): number[] {
+  return mode === 'lightcurve' ? manifest.frames.map((_, i) => i) : pairs(manifest, mode)[0] ?? []
 }
 
 export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manifestUrl: string }) {
@@ -25,9 +30,24 @@ export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manife
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const controller = useRef<AbortController | null>(null)
+  const available = pairs(manifest, mode)
+  function selectionIssue(indices: number[]): string {
+    if (!indices.length) return 'Selecciona al menos una observación.'
+    if (mode === 'lightcurve') return ''
+    if (mode === 'difference' && indices.length !== 2) return 'La diferencia necesita exactamente dos imágenes. Elige una pareja disponible.'
+    if (mode === 'stack' && indices.length < 2) return 'El apilado necesita al menos dos imágenes.'
+    for (let i = 0; i < indices.length; i++) for (let j = i + 1; j < indices.length; j++) {
+      if (!available.some(pair => pair.includes(indices[i]) && pair.includes(indices[j]))) {
+        return mode === 'stack' ? 'La selección mezcla bandas incompatibles o abarca más de siete días. Elige una pareja disponible.' : 'Las bandas de estas imágenes no son compatibles en el centro. Elige una pareja disponible.'
+      }
+    }
+    return ''
+  }
+  const issue = selectionIssue(selected)
   useEffect(() => () => controller.current?.abort(), [])
   function reset() { controller.current?.abort(); setValue(null); setError(''); setBusy(false) }
   async function calculate() {
+    if (issue) return
     reset()
     const next = new AbortController(); controller.current = next; setBusy(true)
     try {
@@ -48,7 +68,13 @@ export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manife
       <option value="difference">Diferencia A − B</option><option value="stack">Apilado de una época</option><option value="lightcurve">Curva del píxel central</option>
     </select></label>
     <p className="muted">{mode === 'difference' ? 'Selecciona dos imágenes. A es la primera seleccionada y B la segunda. Rojo: A mayor; azul: B mayor; blanco: cero.' : mode === 'stack' ? 'Selecciona al menos dos imágenes de una época exploratoria (máximo siete días). Se calcula la media de valores válidos.' : 'Selecciona las fechas a consultar. Los puntos ausentes no se sustituyen por cero.'} Diferencia y apilado requieren bandas compatibles en el centro. Se propone una pareja compatible cuando existe.</p>
-    {mode !== 'lightcurve' && !suggested(manifest, mode).length && <p className="notice">Esta muestra no contiene una pareja compatible para este modo. Prueba otra secuencia; RW Aurigae incluye un ejemplo de apilado en los presets actuales.</p>}
+    {mode !== 'lightcurve' && <>
+      {available.length ? <label>Parejas disponibles ({available.length})<select disabled={busy} value={available.some(pair => pair.join(',') === selected.join(',')) ? selected.join(',') : ''} onChange={event => { if (event.target.value) { reset(); setSelected(event.target.value.split(',').map(Number)) } }}>
+        <option value="" disabled>Selección personalizada</option>
+        {available.map(pair => <option key={pair.join(',')} value={pair.join(',')}>Imágenes {pair[0] + 1} y {pair[1] + 1} · {manifest.frames[pair[0]].date_utc.slice(0, 10)} / {manifest.frames[pair[1]].date_utc.slice(0, 10)}</option>)}
+      </select></label> : <p className="notice">Esta muestra no contiene parejas compatibles para este modo. Puedes consultar la curva central o probar otra secuencia.</p>}
+      {mode === 'difference' && selected.length === 2 && <button disabled={busy} onClick={() => { reset(); setSelected([...selected].reverse()) }}>Intercambiar A y B</button>}
+    </>}
     <fieldset disabled={busy}><legend>Observaciones · orden de selección: {selected.map(i => i + 1).join(', ') || 'ninguna'}</legend>
       <div className="analysis-selection">{manifest.frames.map((frame, i) => <label key={i}>
         <input type="checkbox" checked={selected.includes(i)} onChange={() => { reset(); setSelected(previous => previous.includes(i) ? previous.filter(n => n !== i) : [...previous, i]) }} />
@@ -56,7 +82,8 @@ export function Analysis({ manifest, manifestUrl }: { manifest: Manifest; manife
       </label>)}</div>
       {mode === 'lightcurve' && <button type="button" onClick={() => { reset(); setSelected(manifest.frames.map((_, i) => i)) }}>Seleccionar todas</button>}
     </fieldset>
-    <button type="button" disabled={busy || !selected.length} onClick={() => void calculate()}>{busy ? 'Calculando…' : 'Calcular'}</button>
+    {issue && <p className="notice" role="status">{issue}</p>}
+    <button type="button" disabled={busy || !!issue} onClick={() => void calculate()}>{busy ? 'Calculando…' : 'Calcular'}</button>
     {busy && <p role="status">Leyendo las imágenes alineadas…</p>}
     {error && <p className="notice error" role="alert">{error}</p>}
     {value && <>

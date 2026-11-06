@@ -48,7 +48,18 @@ def read_frame(root, frame):
         if valid.shape != data.shape:
             raise ValueError("Máscara de dimensiones incompatibles.")
         data[~valid | ~np.isfinite(data)] = np.nan
-    return data, WCS(header).celestial.to_header().tostring()
+    return data, WCS(header).celestial
+
+
+def same_grid(first, second, shape):
+    # Comparar posiciones, no texto de cabeceras: MJD-OBS cambia en cada época.
+    y, x = np.indices(shape)
+    ra1, dec1 = first.pixel_to_world_values(x, y)
+    ra2, dec2 = second.pixel_to_world_values(x, y)
+    delta_ra = (ra1 - ra2 + 180) % 360 - 180
+    return bool(np.all(np.isfinite(ra1)) and np.all(np.isfinite(ra2)) and
+                np.all(np.abs(delta_ra * np.cos(np.deg2rad(dec1))) < 1e-8) and
+                np.all(np.abs(dec1 - dec2) < 1e-8))
 
 
 def combine(arrays, mode):
@@ -105,7 +116,7 @@ def analyze(root, manifest, request):
         raise ValueError("El apilado requiere una misma época exploratoria: intervalo máximo de siete días.")
     loaded = [read_frame(root, frame) for frame in frames]
     arrays = [item[0] for item in loaded]
-    if any(a.shape != arrays[0].shape or wcs != loaded[0][1] for a, wcs in loaded):
+    if any(a.shape != arrays[0].shape or not same_grid(wcs, loaded[0][1], a.shape) for a, wcs in loaded):
         raise ValueError("Las rejillas WCS no coinciden.")
     warnings = ["Exploratorio: sin igualación de PSF, sustracción de fondo ni incertidumbres propagadas. No confirma variabilidad ni movimiento.",
                 "Compatibilidad espectral aproximada solo en el centro: separación ≤ mitad del menor ancho. No garantiza equivalencia en todo el campo."]
