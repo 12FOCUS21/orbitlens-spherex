@@ -3,6 +3,8 @@
 ## Estado vigente — 2026-11-06
 
 - 72 pruebas Python pasan, 3 avisos conocidos; TypeScript/Vite compilan.
+- Etapa 6: enlaces y orden espectral tienen 10 pruebas frontend sin dependencias
+  nuevas. Revisión manual de esta versión en STAGE6_QA.md; no se declara completada.
 - Demo: cinco manifiestos ready, 60 PNG, 60 FITS, cinco GIF y cinco target.json.
 - Corregidos cachés VOT/FITS defectuosos, errores HTTP de análisis, validación de
   entradas/manifiestos, claves con máscaras, caché negativa de 60 s y limpieza.
@@ -250,24 +252,32 @@ no es un límite duro. Configuración y validación pública detalladas en DEPLO
   React. Diferencia sobre FITS, media por época de hasta siete días y curva del
   píxel central con null para máscaras. Compatibilidad espectral aproximada
   comprobada entre todas las parejas. Decisiones en SCIENCE.md.
-- Frontend compilado; previsión histórica de 51 pruebas, sustituida por el estado vigente anterior.
-  Pendiente ejecución Python del usuario y QA real de STAGE5_QA.md. No cerrar
-  las casillas siguientes hasta esa validación.
-- [ ] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")
+- Implementación y cálculos comprobados: 72 pruebas Python y `verify_demo.py`.
+  El informe traído por el pull en ENTREGA.md registra una revisión previa en Edge;
+  la regresión visual de esta versión sigue pendiente en STAGE5_QA.md/STAGE6_QA.md.
+  Las casillas siguientes describen implementación, no validación científica.
+- [x] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")
 - [x] Modo Pila: media de valores válidos por píxel, por detector y época (máximo siete días, al menos dos contribuciones; mejora de señal/ruido no cuantificada)
-- [ ] Curva de luz (brillo vs. fecha del píxel central) — probar con RW Aurigae y R Draconis
+- [x] Curva del píxel central: WISE 0855 tiene 12 puntos válidos y Epsilon Indi B 10;
+  Barnard, RW Aurigae y R Draconis tienen 0. No se inventan valores para máscaras.
 
 ## ETAPA 6 — Bandas + compartir + producción
-- [ ] Selector espectral basado en la longitud de onda real de cada medición; IMAGE no es un cubo.
+- [x] Selector espectral basado en la longitud de onda real de cada medición; IMAGE no es un cubo.
 - [ ] Comparación por detector y apilado de mediciones espectralmente compatibles,
   sin sumar indiscriminadamente los seis detectores; pares simultáneos 1–4, 2–5, 3–6.
-- [ ] **Overlay Gaia/WISE** (consideración #5): consulta de catálogo y marcadores
-  sobre el WCS común, o vista Aladin Lite para explorar.
-- [ ] **Coordenadas en la URL** (consideración #6): `/?ra=&dec=&fov=` carga directo el resultado
-- [ ] **Panel de FLAGS/calidad** por frame (consideración #7): flags aplicados, % de píxeles enmascarados
+  El apilado compatible del mismo detector está implementado. Comparación conjunta
+  entre detectores pendiente de diseño/validación científica; no se suman pares por número.
+- [x] **Gaia/WISE** (consideración #5): vista Aladin Lite del mismo campo, con
+  catálogos Gaia DR3/AllWISE; comprobación visual/red pendiente, no overlay SPHEREx.
+- [x] **Coordenadas en la URL** (consideración #6): `/?ra=&dec=&fov=` carga directo el resultado;
+  conserva frames y detector, y respeta opciones de enlaces de preset.
+- [x] **Panel de FLAGS/calidad** por frame (consideración #7): flags aplicados, % de píxeles enmascarados
 - [ ] Repositorio GitHub público + README + licencia + sección "fuentes de datos" (puntúa en el registro)
-- [ ] Sección educativa mínima: ¿qué es el infrarrojo? ¿qué es una enana marrón? ¿por qué se mueve la estrella?
-- [ ] En README: decisiones de estabilidad (semáforo, límites por IP, caché) listas para uso público
+- [x] Sección educativa mínima sobre infrarrojo, enanas marrones y comparación de fechas.
+- [x] En README: decisiones de estabilidad (semáforo, límites por IP, caché);
+  validación real del proxy todavía pendiente, sin afirmar cuotas verificadas.
+
+Detalle y regresión manual de Etapa 6: [STAGE6_QA.md](STAGE6_QA.md).
 
 ## ETAPA 7 — Margen
 - [ ] Espectros al vuelo (solo si TODO lo demás está done; si no, se traslada a etapas 8–9)

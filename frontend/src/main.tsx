@@ -6,9 +6,9 @@ import { Player } from './Player'
 import { Analysis } from './Analysis'
 import type { Job, Manifest, Preset } from './types'
 import './style.css'
+import { fieldQuery, parseFieldLink, presetLabels as labels } from './fieldLinks'
 
 const terminal = new Set(['ready', 'partial', 'empty', 'error'])
-const labels: Record<string, string> = { barnard: 'Barnard’s Star', 'epsilon-indi-b': 'Epsilon Indi B', wise0855: 'WISE 0855', 'rw-aur': 'RW Aurigae', 'r-dra': 'R Draconis' }
 
 function App() {
   const [presets, setPresets] = useState<Preset[]>([])
@@ -33,7 +33,7 @@ function App() {
     return () => { controller.abort(); current.current?.abort() }
   }, [])
 
-  async function search(body: Record<string, unknown>, label: string) {
+  async function search(body: Record<string, unknown>, label: string, sharedPreset?: string) {
     current.current?.abort()
     const controller = new AbortController()
     current.current = controller
@@ -54,13 +54,7 @@ function App() {
       if (next.manifest_url) {
         const result = await api<Manifest>(next.manifest_url, { signal: controller.signal })
         setManifest(result)
-        const params = new URLSearchParams()
-        if (typeof body.preset === 'string') params.set('preset', body.preset)
-        for (const key of ['ra', 'dec', 'fov', 'frames', 'detector'] as const) {
-          const value = result.parameters[key]
-          if (value != null) params.set(key, String(value))
-        }
-        history.replaceState(null, '', '?' + params.toString())
+        history.replaceState(null, '', fieldQuery(result.parameters, typeof body.preset === 'string' ? body.preset : sharedPreset))
       }
       else if (next.status === 'error') setError(next.message)
     } catch (reason) {
@@ -69,19 +63,20 @@ function App() {
   }
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    const preset = params.get('preset')
-    const ra = params.get('ra'), dec = params.get('dec')
-    if (!preset && (ra === null || dec === null)) return
-    const fov = Number(params.get('fov') ?? 5), frames = Number(params.get('frames') ?? 12)
-    const detector = params.get('detector') || null
     // StrictMode cleans up the first mount before it can submit a duplicate job.
     const timer = window.setTimeout(() => {
-      if (preset && Object.prototype.hasOwnProperty.call(labels, preset)) void search({ preset }, labels[preset])
-      else if (ra && dec) {
-        setMode('coordinates'); setRa(ra); setDec(dec); setFov(fov); setCount(frames); setDetector(detector ?? '')
-        void search({ ra, dec, fov, frames, detector }, 'Coordenadas ICRS')
-      } else setError('El enlace no contiene un campo reconocido.')
+      try {
+        const field = parseFieldLink(location.search)
+        if (!field) return
+        const { body, label } = field
+        setFov(body.fov); setCount(body.frames); setDetector(body.detector ?? '')
+        if (body.ra !== undefined && body.dec !== undefined) {
+          setMode('coordinates'); setRa(body.ra); setDec(body.dec)
+        }
+        void search(body, label, field.preset)
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : 'El enlace no es válido.')
+      }
     }, 0)
     return () => window.clearTimeout(timer)
   }, [])
