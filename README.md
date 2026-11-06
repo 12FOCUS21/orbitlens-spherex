@@ -18,7 +18,7 @@ infrarrojas de SPHEREx en tres recorridos claros: **cambio temporal**,
 El alcance previsto incluye comparación de épocas, modos *blink*, deslizador y
 diferencia, apilado, información espectral, superposición de catálogos Gaia/WISE,
 enlaces compartibles y metadatos de calidad y procedencia. Las funciones se
-incorporarán por etapas; la web todavía no está implementada.
+incorporan por etapas; la primera web y su API están preparadas en la Etapa 3.
 
 El producto no debe afirmar el descubrimiento de Planet X. Su valor es hacer
 detectables, visibles y comprensibles posibles cambios, con evidencia y
@@ -37,10 +37,105 @@ limitaciones de calidad están en [VALIDATION.md](VALIDATION.md).
 
 El recorte validado corresponde a QR3/D6, con IMAGE de 49 × 49 píxeles y unidades
 MJy/sr. El archivo FITS completo del recorte ocupa 3,985,920 bytes e incluye
-extensiones auxiliares. Falta verificar la identidad del objeto en la imagen e
-interpretar los bits de FLAGS antes de aplicar máscaras de calidad.
+extensiones auxiliares. Falta verificar la identidad del objeto en la imagen y
+revisar su detectabilidad. La política de máscara por bits de la Etapa 2 está
+documentada en SCIENCE.md.
 
-La siguiente etapa es la API de trabajos con polling y el reproductor web local.
+**Etapa 3 completada y aceptada funcionalmente en localhost:** API FastAPI de trabajos
+con polling y web React + Vite + TypeScript. Incluye caché primero, cola,
+límites por IP, presets y reproductor canvas con avisos científicos. La terminal
+del usuario confirmó 30 pruebas correctas, compilación TypeScript/Vite y arranque
+de Uvicorn. La página y las 12 imágenes de Barnard respondieron HTTP 200.
+El usuario confirmó manualmente el funcionamiento de los controles del reproductor.
+La herramienta de navegador del agente falló al leer la página; no se atribuye
+una verificación visual automatizada. La regresión ampliada y móvil sigue
+documentada en STAGE3_QA.md. La siguiente etapa es el despliegue público.
+
+## Etapa 3: ejecutar la web local
+
+Necesitas Python con las dependencias del proyecto y Node.js 20.19+ o 22.12+
+(se recomienda una versión LTS compatible). Desde PowerShell, en la raíz:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+cd frontend
+npm.cmd install
+npm.cmd run build
+cd ..
+.\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+Abrir **http://127.0.0.1:8000**. FastAPI sirve la compilación de React y la API
+en el mismo origen. Las rutas interactivas de la API están en `/docs`.
+No hace falta regenerar las cinco secuencias reales. Al arrancar se indexan
+los manifiestos del pipeline actual en `data/cache/` y se lee
+`data/cache/preset_verification.json`. Los ejemplos indican si están en caché;
+si falta el informe, se pueden recuperar desde el CLI con `--verify-presets`.
+Los datos locales están excluidos del código: aún no están empaquetados para un
+despliegue nuevo. Esa preparación corresponde a la Etapa 4.
+
+Para editar la web con recarga automática, deja el backend anterior abierto y
+usa otra terminal:
+
+```powershell
+cd frontend
+npm.cmd run dev
+```
+
+Abrir la URL que indique Vite, normalmente http://127.0.0.1:5173. Su proxy
+reenvía `/api` al backend local; el navegador no consulta IRSA directamente.
+Después de modificar el frontend, repite `npm.cmd run build` para actualizar la
+versión servida en el puerto 8000. Reinicia Uvicorn tras la primera compilación
+si se arrancó sin `frontend/dist/`.
+
+El formulario acepta un nombre SIMBAD, coordenadas decimales en grados o
+sexagesimales como `08h55m10.831s` / `-07d14m42.53s` y
+`08:55:10.831` / `-07:14:42.53`. En RA, sexagesimal sin unidad explícita son
+horas; una cifra decimal siempre son grados. Se rechazan valores no finitos,
+RA fuera de [0, 360) y Dec fuera de [−90, 90]. Los presets conservan los centros
+y épocas ya verificados; una búsqueda por coordenadas usa un campo fijo.
+
+El reproductor ofrece play/pausa, deslizador, velocidad y bucle. Precarga todos
+los PNG antes de habilitar la reproducción. Con menos de tres imágenes solo
+permite inspección manual. Muestra UTC, MJD, detector, longitud de onda
+aproximada, cobertura válida, FLAGS del centro y enlaces al recorte IRSA/FITS
+alineado. El fondo cuadriculado representa píxeles sin datos válidos. Un
+detector compartido no implica banda idéntica; `ready` no significa detección.
+
+### API y límites de esta etapa
+
+- `POST /api/search`: JSON con `preset`, `name`, o `ra` + `dec`; opcionales
+  `fov` (1–30 arcmin), `frames` (1–16), `detector` (`SPHEREx-D1`…`D6`).
+  Devuelve HTTP 202 con `job_id`, estado, posición de cola y enlace al resultado
+  cuando exista. La respuesta no espera a SIMBAD, descargas ni reproyección.
+- `GET /api/status/{job_id}`: polling barato; estados `queued`, `resolving`,
+  `searching`, `ready`, `partial`, `empty`, `error`.
+- `GET /api/presets` y `GET /api/health`: disponibilidad local de los ejemplos.
+- `GET /api/results/{result_id}/manifest`: manifiesto con URLs web para los
+  frames y FITS. Solo se sirven artefactos registrados y validados, por índice;
+  no se publica `data/raw/` ni el directorio completo de caché.
+
+Hay como máximo **3 trabajos pesados simultáneos**, ejecutados en threads fuera
+del event loop, y hasta 32 trabajos activos contando la cola. Búsquedas iguales
+comparten trabajo; las escrituras para un mismo centro se serializan para
+proteger recortes y consultas compartidos. Por IP: 2 trabajos distintos en curso
+y 10 solicitudes de búsqueda/minuto, con HTTP 429 y `Retry-After`. Las consultas
+de estado no consumen este cupo. Recuperar una secuencia en caché no ocupa un
+turno pesado, aunque sí cuenta para el límite de solicitudes.
+
+Usar **un solo proceso/worker**: cola y límites viven en memoria; los trabajos
+en curso no sobreviven a un reinicio. Los resultados en disco sí. Los trabajos
+terminados se purgan al recibir nuevas búsquedas (una hora; hasta unos 256
+registros). Al apagar se cancelan los trabajos en cola y se espera a los que
+ya están ejecutándose. Todavía no se aplica caducidad ni limpieza LRU del disco.
+Tras un proxy de despliegue, configura Uvicorn para confiar cabeceras de IP
+únicamente desde ese proxy. La configuración pública se revisará en la Etapa 4.
+
+Revisión manual y estado de verificación: [STAGE3_QA.md](STAGE3_QA.md).
+Referencias de implementación: [ciclo de vida FastAPI](https://fastapi.tiangolo.com/advanced/events/),
+[concurrencia FastAPI](https://fastapi.tiangolo.com/async/),
+[proxy de Vite](https://vite.dev/config/server-options).
 
 ## Documentación del proyecto
 

@@ -1,7 +1,7 @@
 # PLAN — Planet X and SPHEREx (NASA Space Apps 2026)
 
 > **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
-> - Estado: ETAPAS 1 y 2 completadas como acceso y procesamiento de datos reales.
+> - Estado: ETAPAS 1, 2 y 3 completadas: datos, pipeline y web local.
 >   Pipeline 0.2.2: 18 pruebas pasan; cinco presets con 12 frames cada uno.
 >   Datos revisados: 60 PNG, 60 FITS alineados y cinco GIF; sin artefactos faltantes.
 >   Barnard, RW Aur y R Dra: centro enmascarado en 12/12; Epsilon Indi B: 2/12;
@@ -17,9 +17,15 @@
 > - Stack: React+Vite servido por FastAPI (UN servicio en Render). Deploy temprano (etapa 4).
 > - Equipo: el usuario programa solo etapas 1–7; etapas 8–9 (14–15 nov, hackathon) los 5 juntos
 >   (QA fantasma, video, pitch, submission). Compañeros SIN experiencia técnica.
-> - Siguiente paso concreto: ETAPA 3, API de trabajos con polling y reproductor web.
->   Reutilizar los presets de data/cache/preset_verification.json y mostrar los
->   avisos de calidad y límites espectrales de los manifiestos.
+> - ETAPA 3 aceptada funcionalmente: api.py, coordinates.py y frontend React/Vite/TypeScript.
+>   El usuario confirmó las 30 pruebas correctas, compilación TypeScript/Vite,
+>   arranque de Uvicorn y entrega de los 12 PNG de Barnard con HTTP 200.
+>   El usuario confirmó manualmente «Todo está funcional» tras probar controles.
+>   El agente no realizó QA visual automatizada por error interno `timeoutMs`.
+>   Comandos en README.md y lista de revisión en STAGE3_QA.md.
+> - Siguiente paso concreto: ETAPA 4, despliegue y robustez. Conservar la regresión
+>   ampliada/móvil de STAGE3_QA.md para producción. Los presets se cargan desde
+>   data/cache/preset_verification.json sin consultas externas al arrancar.
 > - Consultar SIA en VOTABLE con Astropy: el CSV remoto contiene JSON sin escapar.
 >   IMAGE es 2D (49×49 en el recorte probado); no es un cubo espectral.
 > - Fuentes contextuales del reto en esta carpeta: `chat.md` (conversación previa con otra
@@ -173,19 +179,43 @@ SOURCE y FULLSAMPLE; los problemas instrumentales documentados se enmascaran por
 separado. La política exacta y sus limitaciones se registran en SCIENCE.md.
 
 ## ETAPA 3 — API + web mínima (ya con modelo asincrónico de uso masivo)
-- [ ] `POST /api/search` encola (semáforo máx. 3) → `job_id`; `GET /api/status/{job_id}` para polling
-- [ ] Límite por IP (2 en curso, ~10/min) → HTTP 429 con mensaje amable
-- [ ] `GET /api/presets`
-- [ ] Frontend: formulario (búsqueda por nombre vía SIMBAD + RA/Dec decimal y sexagesimal + FOV)
-- [ ] Player: canvas, play/pausa, slider, velocidad, loop, fecha visible por frame
-- [ ] Mostrar avisos de centro enmascarado y variación espectral del manifiesto;
+- [x] Implementado `POST /api/search` con semáforo máx. 3 → `job_id`; `GET /api/status/{job_id}` para polling
+- [x] Implementado límite por IP (2 en curso, 10/min) → HTTP 429 con mensaje amable
+- [x] Implementado `GET /api/presets`, índice local de resultados y caché primero
+- [x] Frontend preparado: formulario (SIMBAD + RA/Dec decimal y sexagesimal + FOV)
+- [x] Player preparado: canvas, play/pausa, slider, velocidad, loop y fecha por frame
+- [x] Implementados avisos de centro enmascarado y variación espectral del manifiesto;
   `ready` no debe presentarse como detección del objeto.
-- [ ] Estados: buscando / en cola (posición) / vacío (+sugerencias) / parcial / listo / errores claros
-- [ ] **Entregable:** la web funciona en localhost con datos reales.
+- [x] Implementados estados: resolución / búsqueda / cola con posición / vacío / parcial / listo / error
+- [x] Preparadas 12 pruebas de API sin red y guía STAGE3_QA.md
+- [x] Ejecutar las 30 pruebas Python y compilar React/Vite en la terminal del usuario
+- [x] Funcionamiento de controles confirmado manualmente por el usuario
+- [x] **Entregable:** la web funciona en localhost con datos reales.
+
+La regresión detallada de los cinco presets y ventana móvil se conserva en
+STAGE3_QA.md para revisión previa al despliegue y Etapa 7; sin fallos reportados.
+
+Ejecución confirmada por el usuario: 30 pruebas pasan en 1.036 s, Vite compila
+en 680 ms, Uvicorn arranca y sirve la web y los 12 PNG de Barnard correctamente.
+El usuario confirmó después «Todo está funcional» al solicitarle probar los
+controles con Epsilon Indi B. Se cierra la aceptación funcional local con esa
+comprobación manual. La herramienta falló con `timeoutMs`; no se atribuye QA
+visual automatizada al agente ni revisión individual de toda la lista ampliada.
+
+`api.py` ejecuta
+SIMBAD y el pipeline síncrono mediante `asyncio.to_thread`, bajo el semáforo.
+Las búsquedas iguales comparten trabajo; las escrituras para un mismo centro
+se serializan en disco. Cola máxima: 32 trabajos activos. Los resultados y sus
+archivos se validan antes de exponer enlaces por índice, sin servir data/raw.
+FastAPI sirve frontend/dist en el mismo origen. Requiere un solo worker porque
+cola y límites son por proceso. Al arrancar se indexan los datos existentes,
+sin warm-up de red. La generación y distribución de presets para despliegue
+nuevo sigue pendiente en Etapa 4. Las restricciones iniciales del agente no
+sustituyen la evidencia de ejecución posterior del usuario, registrada arriba.
 
 ## ETAPA 4 — Despliegue + robustez (PRIMERO El deploy)
 - [ ] Subir a Render/Fly.io. **URL pública viva.**
-- [ ] Parser RA/Dec sexagesimal (Astropy) — aceptar `08h55m10.831s`/`-07d14m42.53s`
+- [x] Parser RA/Dec sexagesimal (Astropy) implementado en Etapa 3 y probado con la suite
 - [ ] Caché por cache_key (RA+Dec redondeados + FOV + colecciones + versión pipeline)
 - [ ] Presets pre-cacheados al desplegar (la demo nunca depende de IRSA en vivo)
 - [ ] Config de colecciones/versión → "fácil actualización con nuevos lanzamientos"
