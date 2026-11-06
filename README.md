@@ -268,18 +268,14 @@ la vista previa está disponible. El bundle antiguo no incluía estos auxiliares
 ahora `prepare_deploy.py` los copia o reconstruye sin red.
 
 Los recortes originales y las respuestas de consulta se conservan en
-<<<<<<< HEAD
 `data/raw/`. Las secuencias listas se reutilizan por parámetros, colecciones,
 versión, política de máscaras y rejilla. `--refresh` vuelve a consultar y descargar
 conservando secuencias previas. Las consultas VOT válidas caducan a los siete días;
 las corruptas se invalidan inmediatamente. Los estados `partial`, `empty` y `error`
 se reutilizan durante 60 segundos, sin prolongar ese plazo con cada lectura.
 La limpieza de disco de la API también cubre targets, day1 y temporales huérfanos.
-=======
-`data/raw/`. Las secuencias listas se reutilizan por clave de parámetros y
-versión del pipeline; `--refresh` vuelve a consultar y descargar conservando las
-secuencias previas. Las fechas de consulta quedan registradas. El servidor libera espacio por antigüedad cuando se supera su presupuesto y protege los ejemplos empaquetados.
->>>>>>> 6dc7582a2262256874884daa60746ded1bfb38ea
+Las fechas de consulta quedan registradas. El servidor libera espacio por
+antigüedad cuando se supera su presupuesto y protege los ejemplos empaquetados.
 
 Opciones: `--fov` (1–30 arcmin), `--frames` (1–16), `--maxrec` (hasta 10000 por
 colección), `--epoch` (año juliano), `--detector`, `--raw-root` y `--cache-root`.
