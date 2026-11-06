@@ -2,7 +2,7 @@
 
 ## Estado actual — 2026-11-06
 
-Suite local: **72 pruebas correctas**, 3 avisos conocidos; TypeScript/Vite compilan.
+Suite local: **76 pruebas correctas**, 3 avisos conocidos; TypeScript/Vite compilan.
 El bundle `demo/cache` contiene cinco manifiestos ready con 12 frames cada uno,
 60 PNG, 60 FITS, cinco GIF y cinco target.json. Los GIF/target faltaban en el
 bundle anterior: se incorporaron durante la corrección de robustez, sin nuevas

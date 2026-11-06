@@ -4,7 +4,7 @@ Un servicio Python sirve la API y la compilación React. La configuración está
 `render.yaml`. Despliegue público confirmado funcionando por el usuario:
 https://orbitlens-spherex.onrender.com
 
-**Validación local actual (2026-11-06): 72 pruebas Python pasan, con 3 avisos;
+**Validación local actual (2026-11-06): 76 pruebas Python pasan, con 3 avisos;
 TypeScript/Vite compilan.** Bundle completo: cinco manifiestos, 60 PNG, 60 FITS,
 cinco GIF, cinco target.json y el informe portable. No se ha vuelto a desplegar.
 

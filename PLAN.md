@@ -2,9 +2,12 @@
 
 ## Estado vigente — 2026-11-06
 
-- 72 pruebas Python pasan, 3 avisos conocidos; TypeScript/Vite compilan.
+- 76 pruebas Python pasan, 3 avisos conocidos; TypeScript/Vite compilan.
 - Etapa 6: enlaces y orden espectral tienen 10 pruebas frontend sin dependencias
   nuevas. Revisión manual de esta versión en STAGE6_QA.md; no se declara completada.
+- Etapa 7: smoke HTTP local reproducible en `verify_release.py`, con diez visitas
+  concurrentes, artefactos completos, dos campos repetidos y cuota local. Matriz
+  de 15 casos en STAGE7_QA.md; ensayos y navegador/Render siguen pendientes.
 - Demo: cinco manifiestos ready, 60 PNG, 60 FITS, cinco GIF y cinco target.json.
 - Corregidos cachés VOT/FITS defectuosos, errores HTTP de análisis, validación de
   entradas/manifiestos, claves con máscaras, caché negativa de 60 s y limpieza.
@@ -252,7 +255,7 @@ no es un límite duro. Configuración y validación pública detalladas en DEPLO
   React. Diferencia sobre FITS, media por época de hasta siete días y curva del
   píxel central con null para máscaras. Compatibilidad espectral aproximada
   comprobada entre todas las parejas. Decisiones en SCIENCE.md.
-- Implementación y cálculos comprobados: 72 pruebas Python y `verify_demo.py`.
+- Implementación y cálculos comprobados: 76 pruebas Python y `verify_demo.py`.
   El informe traído por el pull en ENTREGA.md registra una revisión previa en Edge;
   la regresión visual de esta versión sigue pendiente en STAGE5_QA.md/STAGE6_QA.md.
   Las casillas siguientes describen implementación, no validación científica.
@@ -283,7 +286,10 @@ Detalle y regresión manual de Etapa 6: [STAGE6_QA.md](STAGE6_QA.md).
 - [ ] Espectros al vuelo (solo si TODO lo demás está done; si no, se traslada a etapas 8–9)
 - [ ] Pulido de UI, ensayo completo de la demo 3 veces
 - [ ] Prueba de carga casera: 10 pestañas abiertas + 2 coordenadas repetidas por donde validar caché
-- [ ] Lista de 10–15 casos de prueba (coordenadas variadas: vacía, parcial, profunda, polos)
+  Smoke HTTP local automatizado en `verify_release.py`; no sustituye diez pestañas
+  reales ni comprueba el proxy de Render. Casos y ensayos en STAGE7_QA.md.
+- [x] Matriz de 15 casos de prueba: presets, ceros, partial controlado, colecciones
+  profundas, polos, entradas inválidas y dependencias externas; ejecución manual pendiente.
 - [ ] Descansar.
 
 ---

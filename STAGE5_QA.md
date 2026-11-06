@@ -1,6 +1,6 @@
 # Etapa 5 — comparación exploratoria
 
-Implementada; suite Python ejecutada localmente: **72 pruebas pasan** (2026-11-06),
+Implementada; suite Python ejecutada localmente: **76 pruebas pasan** (2026-11-06),
 con 3 avisos conocidos. TypeScript/Vite compilan. Sigue pendiente comprobar los
 modos visualmente con datos reales; las pruebas no sustituyen validación científica.
 
@@ -12,7 +12,8 @@ npm.cmd --prefix frontend run build
 .\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1
 ```
 
-Suite actual: 72 pruebas, incluidas doce de análisis y veinte regresiones de errores. Verifican signo
+Suite actual: 76 pruebas, incluidas doce de análisis, veinte regresiones de errores
+y cuatro del smoke de entrega. Verifican signo
 de la diferencia, máscaras, denominador de la media, color y orientación del PNG,
 ceros frente a ausentes, incompatibilidad espectral, épocas, duplicados, WCS,
 ausencia de cobertura, validación HTTP y límite de solicitudes.
