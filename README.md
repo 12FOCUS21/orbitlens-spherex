@@ -21,6 +21,9 @@ También pasan 20 casos de navegador en Edge headless (escritorio y 390 px):
 de desarrollo y un servidor/caché temporales; recompila la app antes de ejecutarse.
 No consulta IRSA ni CDS. Configuración y límites en [STAGE7_QA.md](STAGE7_QA.md).
 La verificación del proxy y de las cuotas por visitante en Render sigue pendiente.
+La lectura pública del 2026-11-06 confirmó salud/presets, JS/CSS coincidentes con
+el build local y una muestra de PNG/FITS más los cinco GIF/target.json. No incluye
+pruebas de cuota ni de CDS disponible; evidencia y protocolo en DEPLOYMENT.md.
 
 La Etapa 7 añade cuatro pruebas del smoke de entrega. Tras compilar el frontend,
 ejecuta `.\.venv\Scripts\python.exe verify_release.py`: verifica mediante HTTP local

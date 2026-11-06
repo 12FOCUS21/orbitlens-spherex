@@ -11,6 +11,9 @@
 - Regresión funcional local: 20 casos E2E correctos en Edge headless, escritorio
   y viewport móvil de 390 px, incluidos diez tabs reales. Revisión manual de
   diseño, CDS disponible, ensayos y proxy de Render siguen pendientes.
+- Lectura pública comprobada el 2026-11-06: salud y cinco presets 200; JS/CSS
+  coinciden con el build local; diez PNG/FITS muestreados y cinco GIF/target.json
+  accesibles. No se hicieron POST de producción; cuotas y CDS siguen pendientes.
 - Demo: cinco manifiestos ready, 60 PNG, 60 FITS, cinco GIF y cinco target.json.
 - Corregidos cachés VOT/FITS defectuosos, errores HTTP de análisis, validación de
   entradas/manifiestos, claves con máscaras, caché negativa de 60 s y limpieza.
@@ -294,6 +297,7 @@ Detalle y regresión manual de Etapa 6: [STAGE6_QA.md](STAGE6_QA.md).
   para pruebas. Configuración, límites y casos en STAGE7_QA.md.
 - [ ] Comprobar cuotas reales en Render desde dos conexiones y con cabeceras
   falsificadas, más revisión manual en dispositivo real y CDS disponible.
+  Los GET públicos ya están comprobados; protocolo y evidencia en DEPLOYMENT.md.
 - [x] Matriz de 15 casos de prueba: presets, ceros, partial controlado, colecciones
   profundas, polos, entradas inválidas y dependencias externas; ejecución manual pendiente.
 - [ ] Descansar.

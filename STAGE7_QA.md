@@ -78,6 +78,16 @@ Sin un navegador detectado se usa Chromium de Playwright; instalarlo con
 defecto es el de `.venv`; `ORBITLENS_TEST_PYTHON` permite indicar otro ejecutable.
 `ORBITLENS_E2E_PORT` cambia el puerto local. No se reutiliza un servidor existente.
 
+## Lectura pública posterior — 2026-11-06
+
+Salud, cinco presets, frontend y auxiliares respondieron 200. El JS/CSS coincide
+con el build local y se comprobó el primer y último PNG/FITS de cada preset;
+los diez FITS coinciden por SHA-256 con el bundle local. Detalle en DEPLOYMENT.md.
+No se enviaron POST de producción ni se probaron cuotas. La biblioteca de CDS
+agotó el tiempo de conexión desde este entorno; no se considera prueba de una
+caída global ni de un defecto del visor. Sigue pendiente abrir Gaia/AllWISE con
+CDS disponible desde una conexión que lo permita.
+
 ## Matriz de 15 casos
 
 Los casos con coordenadas nuevas pueden consultar IRSA: ejecutarlos manualmente

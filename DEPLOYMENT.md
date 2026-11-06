@@ -6,7 +6,39 @@ https://orbitlens-spherex.onrender.com
 
 **Validación local actual (2026-11-06): 76 pruebas Python pasan, con 3 avisos;
 TypeScript/Vite compilan.** Bundle completo: cinco manifiestos, 60 PNG, 60 FITS,
-cinco GIF, cinco target.json y el informe portable. No se ha vuelto a desplegar.
+cinco GIF, cinco target.json y el informe portable. La comprobación pública de
+lectura del 2026-11-06 confirmó los recursos indicados a continuación; no acredita
+el despliegue de archivos de pruebas que no se sirven por HTTP.
+
+## Comprobación pública de lectura — 2026-11-06, aproximadamente 17:01 UTC
+
+Se consultó `https://orbitlens-spherex.onrender.com` directamente con HTTPX,
+sin POST, resoluciones de nombres, búsquedas nuevas ni cambios de configuración:
+
+| Recurso | Resultado observado |
+| --- | --- |
+| `/api/health` | 200; pipeline 0.2.2; cinco presets cacheados |
+| `/api/presets` | 200; los cinco presets cacheados con 12 frames cada uno |
+| `/` y JS/CSS referenciados | 200; archivos JS/CSS idénticos por SHA-256 al build local |
+| `/catalogos.html` | 200; mismo contenido tras normalizar CRLF/LF |
+| Cinco manifiestos | 200; esquema mínimo válido, estado ready y 12 frames |
+| Primer y último PNG de cada preset | Diez respuestas 200 con firma PNG |
+| Primer y último FITS de cada preset | Diez respuestas 200, SHA-256 idéntico al bundle local; imagen primaria 49×49, FLAGS/VALID compatibles y unidad MJy/sr |
+| Cinco GIF referenciados | 200 y firma GIF válida |
+| Cinco target.json | 200; coordenadas coincidentes con sus manifiestos |
+
+Esto es un muestreo de artefactos públicos, no una descarga de los 60 FITS/PNG ni
+una validación científica o de capacidad del servicio. No se ejecutaron análisis
+ni se consumió intencionadamente la cuota de búsquedas de producción.
+
+La herramienta de lectura web devolvió inicialmente 503; una petición directa
+confirmó 200. No se atribuye una caída del servicio a ese resultado aislado.
+El acceso directo a la biblioteca de CDS agotó el tiempo de conexión desde este
+entorno. La página de catálogos sí está publicada, pero la carga real de Gaia/
+AllWISE sigue pendiente: ese timeout no demuestra una caída global de CDS.
+
+**Pendiente operativo:** separación de cuotas entre dos conexiones, resistencia
+a `X-Forwarded-For` falsificado, revisión de proxies de confianza y móvil físico.
 
 Registro histórico de Etapa 4: el usuario confirmó 32 pruebas y un bundle de
 126 archivos (anterior a la inclusión de GIF y target.json). El agente intentó consultar la web, `/api/health` y
@@ -48,7 +80,7 @@ paquete en cada arranque. Un solo worker mantiene coherentes los límites y la
 cola en memoria. El servicio gratuito puede suspenderse por inactividad: el
 primer acceso puede esperar el arranque incluso con presets empaquetados.
 
-## Comprobación pública aceptada por el usuario
+## Comprobación pública histórica aceptada por el usuario
 
 - `/api/health` devuelve 200 y `cached_presets: 5`.
 - `/` muestra la aplicación y los cinco presets cargan sus imágenes.
@@ -99,6 +131,56 @@ revisa el proxy y su configuración antes de cambiar direcciones de confianza.
 Repite desde una sola conexión enviando diferentes valores falsos de
 `X-Forwarded-For`: no deben permitir superar la cuota. Verifica también que el
 puerto de Uvicorn no sea accesible directamente fuera del proxy de confianza.
+
+### Protocolo manual de cuota (requiere dos conexiones)
+
+Hacerlo sobre presets cacheados, no sobre coordenadas nuevas. Esperar al menos
+60 segundos desde la última búsqueda o análisis de esa IP, cerrar otras pestañas
+que hagan POST y no ejecutar un ensayo de carga al mismo tiempo.
+
+1. Desde Wi-Fi, abrir la demo. En las herramientas de desarrollo, pestaña Red,
+   conservar el registro y pulsar Barnard once veces, esperando a que termine
+   cada petición antes de la siguiente, dentro de un minuto.
+2. Comprobar que las primeras diez peticiones son 202 y recuperan caché; la
+   undécima debe devolver 429 con `Retry-After`. Si ya había tráfico de esa IP,
+   puede agotarse antes: repetir después de un minuto sin POST desde esa IP.
+3. Inmediatamente, desde un teléfono con Wi-Fi **desactivado** y datos móviles,
+   abrir Barnard una vez. Debe cargar de caché sin compartir el bloqueo. Para
+   acreditar HTTP 202, registrar también la respuesta mediante las herramientas
+   de red disponibles en el dispositivo; no confundir un estado visual con el código HTTP.
+4. Mientras la primera conexión siga limitada, enviar desde ella otra petición
+   del mismo preset con `X-Forwarded-For: 203.0.113.123`. Debe seguir devolviendo
+   429; cambiar esa cabecera no debe restablecer la cuota. Puede repetirse con
+   otro valor, sin generar bucles de carga.
+5. Si la segunda conexión también está bloqueada, comprobar primero que tiene
+   otra IP pública. Si la cabecera falsa permite eludir la cuota, revisar la
+   cadena y la configuración del proxy, no aumentar los límites ni activar `*`.
+
+Para el paso 4, desde la consola de la demo en la conexión A, enviar una única
+petición del preset ya cacheado (solo mientras se está comprobando el bloqueo):
+
+```javascript
+fetch('/api/search', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '203.0.113.123' },
+  body: JSON.stringify({ preset: 'barnard' }),
+}).then(async response => console.log({
+  status: response.status,
+  retryAfter: response.headers.get('Retry-After'),
+  body: await response.json(),
+}));
+```
+
+La comprobación directa de IP/CIDR y del acceso al puerto corresponde al operador
+en Render. No publicar un endpoint que exponga IP o cabeceras internas para esta
+prueba. Registrar fecha UTC, versión y resultados sin incluir credenciales.
+
+| Evidencia | Estado |
+| --- | --- |
+| 202 cacheados y undécimo POST 429 en conexión A | Pendiente |
+| Conexión B con otra IP sigue pudiendo abrir el preset | Pendiente |
+| Cabeceras falsificadas desde A no eluden 429 | Pendiente |
+| IP/CIDR configuradas y puerto sin acceso directo no confiable | Pendiente |
 
 Ejecuta las pruebas tras estos cambios y recompila el frontend:
 

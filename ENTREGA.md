@@ -36,6 +36,11 @@ los tres análisis y el fallo de CDS. La suite se repite con
 `npm.cmd --prefix frontend run test:e2e` y usa caché temporal y cuota elevada solo
 para pruebas. No verifica la carga correcta de catálogos externos, un móvil físico
 ni el proxy de producción. Los tres ensayos de presentación siguen pendientes.
+Una comprobación directa de lectura pública el 2026-11-06 confirmó salud y cinco
+presets en 200, frontend JS/CSS idéntico al build local y acceso al primer/último
+PNG/FITS de cada secuencia, cinco GIF y cinco target.json. No se hicieron POST ni
+se verificaron cuotas entre conexiones. La evidencia y el protocolo operativo
+pendiente están en DEPLOYMENT.md.
 
 ## Ensayo y reparto para cinco integrantes
 
