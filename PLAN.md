@@ -7,7 +7,10 @@
   nuevas. Revisión manual de esta versión en STAGE6_QA.md; no se declara completada.
 - Etapa 7: smoke HTTP local reproducible en `verify_release.py`, con diez visitas
   concurrentes, artefactos completos, dos campos repetidos y cuota local. Matriz
-  de 15 casos en STAGE7_QA.md; ensayos y navegador/Render siguen pendientes.
+  de 15 casos en STAGE7_QA.md; ensayos y validación de producción siguen pendientes.
+- Regresión funcional local: 20 casos E2E correctos en Edge headless, escritorio
+  y viewport móvil de 390 px, incluidos diez tabs reales. Revisión manual de
+  diseño, CDS disponible, ensayos y proxy de Render siguen pendientes.
 - Demo: cinco manifiestos ready, 60 PNG, 60 FITS, cinco GIF y cinco target.json.
 - Corregidos cachés VOT/FITS defectuosos, errores HTTP de análisis, validación de
   entradas/manifiestos, claves con máscaras, caché negativa de 60 s y limpieza.
@@ -285,9 +288,12 @@ Detalle y regresión manual de Etapa 6: [STAGE6_QA.md](STAGE6_QA.md).
 ## ETAPA 7 — Margen
 - [ ] Espectros al vuelo (solo si TODO lo demás está done; si no, se traslada a etapas 8–9)
 - [ ] Pulido de UI, ensayo completo de la demo 3 veces
-- [ ] Prueba de carga casera: 10 pestañas abiertas + 2 coordenadas repetidas por donde validar caché
-  Smoke HTTP local automatizado en `verify_release.py`; no sustituye diez pestañas
-  reales ni comprueba el proxy de Render. Casos y ensayos en STAGE7_QA.md.
+- [x] Regresión local: diez pestañas reales simultáneas con Playwright y dos
+  coordenadas repetidas mediante `verify_release.py`, con resultados en caché.
+  No mide capacidad de Render: el servidor E2E tiene cuota elevada exclusivamente
+  para pruebas. Configuración, límites y casos en STAGE7_QA.md.
+- [ ] Comprobar cuotas reales en Render desde dos conexiones y con cabeceras
+  falsificadas, más revisión manual en dispositivo real y CDS disponible.
 - [x] Matriz de 15 casos de prueba: presets, ceros, partial controlado, colecciones
   profundas, polos, entradas inválidas y dependencias externas; ejecución manual pendiente.
 - [ ] Descansar.

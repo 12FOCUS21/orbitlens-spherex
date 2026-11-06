@@ -1,8 +1,9 @@
 # Etapa 5 — comparación exploratoria
 
 Implementada; suite Python ejecutada localmente: **76 pruebas pasan** (2026-11-06),
-con 3 avisos conocidos. TypeScript/Vite compilan. Sigue pendiente comprobar los
-modos visualmente con datos reales; las pruebas no sustituyen validación científica.
+con 3 avisos conocidos. TypeScript/Vite compilan. Los modos se comprobaron además
+con Playwright/Edge headless y los FITS empaquetados, en escritorio y viewport
+móvil; ver STAGE7_QA.md. Esto no sustituye revisión científica ni un dispositivo real.
 
 ## Validación local
 
@@ -43,8 +44,9 @@ TypeScript/Vite correcta; suite Python ejecutada y correcta.
   bajo el nuevo objeto. Revisar selección y tabla en ventana móvil.
 - Descargar la PNG; es una vista con estiramiento, no un producto fotométrico.
 
-Parejas calculadas a partir de los metadatos reales empaquetados, aún sin
-validación del resultado visual de estos nuevos modos. No hace falta regenerar
+Parejas calculadas a partir de los metadatos reales empaquetados; la suite de
+navegador comprueba resultados y controles, sin validar identidades científicas.
+No hace falta regenerar
 presets: se leen los FITS alineados existentes, sin consultas a IRSA.
 
 ## API

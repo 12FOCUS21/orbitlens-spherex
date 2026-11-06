@@ -15,7 +15,11 @@ Pruebas y revisión manual: [STAGE6_QA.md](STAGE6_QA.md).
 **Verificación local actual (2026-11-06): 76 pruebas Python pasan**, con 3 avisos;
 TypeScript y Vite compilan. Se han añadido 20 pruebas de regresión de errores.
 El frontend incorpora además 10 pruebas de enlaces y orden espectral:
-`npm.cmd --prefix frontend test` (Node.js 22.12+, sin dependencias nuevas).
+`npm.cmd --prefix frontend test` (Node.js 22.12+, runner nativo de Node).
+También pasan 20 casos de navegador en Edge headless (escritorio y 390 px):
+`npm.cmd --prefix frontend run test:e2e`. Esta suite usa Playwright como dependencia
+de desarrollo y un servidor/caché temporales; recompila la app antes de ejecutarse.
+No consulta IRSA ni CDS. Configuración y límites en [STAGE7_QA.md](STAGE7_QA.md).
 La verificación del proxy y de las cuotas por visitante en Render sigue pendiente.
 
 La Etapa 7 añade cuatro pruebas del smoke de entrega. Tras compilar el frontend,
