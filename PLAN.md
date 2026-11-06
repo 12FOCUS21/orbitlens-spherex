@@ -1,12 +1,12 @@
 # PLAN — Planet X and SPHEREx (NASA Space Apps 2026)
 
 > **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
-> - Estado: ETAPA 1 validado (2026-11-05): FITS real, PNG e informe generados; 4 pruebas pasan.
->   ETAPA 2: 17 pruebas pasaron; Barnard generó 12 frames D3 reales con pipeline 0.2.1.
->   Sus 12 centros están enmascarados por calidad: no demuestra detectabilidad del objeto.
->   La versión 0.2.2 corrige SIP en WCS espectral W; mantiene SIP en WCS celestial.
->   Pendientes: ejecutar 18 pruebas, regenerar y verificar los cinco presets.
->   No marcar la etapa completada todavía.
+> - Estado: ETAPAS 1 y 2 completadas como acceso y procesamiento de datos reales.
+>   Pipeline 0.2.2: 18 pruebas pasan; cinco presets con 12 frames cada uno.
+>   Datos revisados: 60 PNG, 60 FITS alineados y cinco GIF; sin artefactos faltantes.
+>   Barnard, RW Aur y R Dra: centro enmascarado en 12/12; Epsilon Indi B: 2/12;
+>   WISE 0855: 0/12. Esto no confirma detectabilidad ni movimiento de las fuentes.
+>   Resultado completo en VALIDATION.md; pendientes científicos documentados allí.
 >   Python solo se ejecuta desde la terminal del usuario por restricciones del entorno del agente.
 > - Lo que se verificó en vivo (fecha 2026-11-05): endpoint SIA2 de IRSA funciona,
 >   filas reales con access_url/detector/MJD; cutouts vía `access_url?center=RA,Dec&size=grados`;
@@ -17,9 +17,9 @@
 > - Stack: React+Vite servido por FastAPI (UN servicio en Render). Deploy temprano (etapa 4).
 > - Equipo: el usuario programa solo etapas 1–7; etapas 8–9 (14–15 nov, hackathon) los 5 juntos
 >   (QA fantasma, video, pitch, submission). Compañeros SIN experiencia técnica.
-> - Siguiente paso concreto: volver a ejecutar unittest y
->   `build_sequence.py --preset barnard`; después `build_sequence.py --verify-presets`.
->   Revisar GIF, manifest.json y preset_verification.json antes de pasar a la API.
+> - Siguiente paso concreto: ETAPA 3, API de trabajos con polling y reproductor web.
+>   Reutilizar los presets de data/cache/preset_verification.json y mostrar los
+>   avisos de calidad y límites espectrales de los manifiestos.
 > - Consultar SIA en VOTABLE con Astropy: el CSV remoto contiene JSON sin escapar.
 >   IMAGE es 2D (49×49 en el recorte probado); no es un cubo espectral.
 > - Fuentes contextuales del reto en esta carpeta: `chat.md` (conversación previa con otra
@@ -101,10 +101,10 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - Extensiones: PRIMARY, IMAGE, FLAGS, VARIANCE, ZODI, EPSF y WCS-WAVE.
   IMAGE: 49×49, float32, MJy/sr; todos sus píxeles son finitos.
 - Centro dentro del WCS: (24.0061, 23.6466). PNG revisada visualmente, 2,426 bytes.
-- FLAGS es distinto de cero en el 100% de los píxeles. **Pendiente interpretar bits**:
-  no asumir que todos son inválidos ni aplicar una máscara `FLAGS != 0` sin documentación.
-- Coordenadas aproximadas: queda pendiente verificar con SIMBAD y considerar movimiento
-  propio/época antes de identificar a Barnard en la imagen.
+- FLAGS es distinto de cero en el 100% de los píxeles. La Etapa 2 confirmó SOURCE
+  en todos ellos y añadió una máscara por bits; no usar `FLAGS != 0` como máscara global.
+- Coordenadas de esta primera prueba aproximadas. La Etapa 2 resolvió los presets
+  con SIMBAD y propagó el movimiento propio; la identificación visual sigue pendiente.
 - La imagen es espacial 2D; no implementar el selector espectral como planos de un
   cubo. Revisar la información de longitud de onda antes de diseñar ese selector.
 
@@ -114,15 +114,18 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - [x] Instalar reproject y ejecutar las primeras 13 pruebas: todas pasan.
 - [x] Ejecutar las 15 pruebas tras añadir fallback de SIMBAD: todas pasan.
 - [x] Ejecutar las 17 pruebas tras corregir el rechazo por centro enmascarado: todas pasan.
-- [ ] Ejecutar las 18 pruebas tras corregir SIP en la WCS espectral y regenerar datos.
-- [x] Mismo pipeline con 8–12 cutouts del MISMO detector: 12 frames reales D3 (0.2.1).
+- [x] Ejecutar las 18 pruebas tras corregir SIP en la WCS espectral y regenerar datos: pasan.
+- [x] Mismo pipeline con 8–12 cutouts del MISMO detector: 12 frames por preset (0.2.2).
 - [x] Reproyección a WCS común (`reproject`)
 - [x] Estiramiento GLOBAL (mismos percentiles para todos los frames, asinh)
 - [x] Frames WebP/PNG + `manifest.json` (fecha, MJD, banda, detector, URL IRSA, parámetros, versión pipeline)
-- [ ] **Verificar los 5 objetos del reto:** Barnard's Star, Epsilon Indi B, WISE 0855 (QR2), RW Aurigae, R Draconis
-- [ ] Anotar en este archivo qué colección y detector funciona para cada uno.
+- [x] **Verificar cobertura y procesamiento de los campos de los 5 objetos:**
+  Barnard's Star, Epsilon Indi B, WISE 0855 (QR2), RW Aurigae, R Draconis.
+- [x] Anotar en este archivo qué colección y detector permitió procesar cada campo.
 
-La validación real de esta etapa está pendiente. El pipeline ya implementa selección
+La validación real del procesamiento está completada (informe UTC 2026-11-06).
+La identidad, detectabilidad y movimiento de las fuentes no se han confirmado.
+El pipeline implementa selección
 temporal de un detector, deduplicación de exposiciones, margen espacial de recorte,
 reproyección bilineal, máscara conservadora por bits, escala global, PNG RGBA,
 FITS alineados, GIF de QA y manifiesto. Los recortes y consultas se reutilizan en
@@ -151,13 +154,18 @@ mediante una copia de la cabecera sin coeficientes SIP, conservando intacta la
 transformación celestial. Las longitudes de onda del manifiesto 0.2.1 deben
 regenerarse; no usar esos valores como calibración científica.
 
-| Objeto | Colecciones en secuencia | Detector | Estado verificado |
-| --- | --- | --- | --- |
-| Barnard | QR2, QR3 | D3 | 12 frames en 0.2.1; centro enmascarado en todos; no confirma visibilidad |
-| Epsilon Indi B | Pendiente | Pendiente | Ejecutar --verify-presets |
-| WISE 0855 | QR2 en consulta inicial; secuencia pendiente | Pendiente | Ejecutar --verify-presets |
-| RW Aurigae | Pendiente | Pendiente | Ejecutar --verify-presets |
-| R Draconis | Pendiente | Pendiente | Ejecutar --verify-presets |
+| Objeto | Colecciones en secuencia | Detector | Frames | Centro enmascarado |
+| --- | --- | --- | --- | --- |
+| Barnard | QR2, QR3 | D3 | 12 | 12/12 |
+| Epsilon Indi B | QR2, QR3 | D2 | 12 | 2/12 |
+| WISE 0855 | QR2 | D2 | 12 | 0/12; detectabilidad en esta banda no confirmada |
+| RW Aurigae | QR2, QR3 | D5 | 12 | 12/12 |
+| R Draconis | QR2, QR2 deep, QR3 deep | D1 | 12 | 12/12 |
+
+Las 60 lecturas espectrales se calcularon sin error registrado. Un HTTP 503 en
+WISE 0855 se recuperó mediante otro candidato. R Dra depende de colecciones
+profundas: QR3 general no devolvió filas y QR2 deep alcanzó MAXREC=1000.
+La muestra de R Dra no es exhaustiva. Evidencia y límites: VALIDATION.md.
 
 Se comprobó directamente el mapa FLAGS del primer recorte: SOURCE (21) está activo
 en los 2,401 píxeles. También aparecen bits 0, 2, 6, 11, 17 y 28. Se conservan
@@ -170,6 +178,8 @@ separado. La política exacta y sus limitaciones se registran en SCIENCE.md.
 - [ ] `GET /api/presets`
 - [ ] Frontend: formulario (búsqueda por nombre vía SIMBAD + RA/Dec decimal y sexagesimal + FOV)
 - [ ] Player: canvas, play/pausa, slider, velocidad, loop, fecha visible por frame
+- [ ] Mostrar avisos de centro enmascarado y variación espectral del manifiesto;
+  `ready` no debe presentarse como detección del objeto.
 - [ ] Estados: buscando / en cola (posición) / vacío (+sugerencias) / parcial / listo / errores claros
 - [ ] **Entregable:** la web funciona en localhost con datos reales.
 
@@ -242,26 +252,36 @@ separado. La política exacta y sus limitaciones se registran en SCIENCE.md.
 
 ---
 
-## Coordenadas de referencia (verifica con SIMBAD el etapa 1)
+## Coordenadas de referencia verificadas — SIMBAD, época juliana 2026.5
 
-- Barnard's Star: RA≈269.452, Dec≈+4.693 (verificado QR3 dentro de 0.3°)
-- WISE 0855: RA 08h55m10.831s = 133.795, Dec -07d14m42.53s = -7.245 (verificado QR2; QR3 sin datos)
-- Epsilon Indi B: RA≈331.0, Dec≈-56.8 (verificar)
-- RW Aurigae: RA≈76.96, Dec≈+30.44 (verificar)
-- R Draconis: RA≈263.2, Dec≈+56.9 (verificar)
+Coordenadas ICRS usadas en los presets, propagadas desde J2000 con movimiento
+propio. No incluyen paralaje anual ni se recalculan para cada exposición.
+
+| Objeto | RA (grados) | Dec (grados) |
+| --- | --- | --- |
+| Barnard's Star | 269.44615615 | +4.76964363 |
+| WISE 0855 | 133.75862792 | −7.24208853 |
+| Epsilon Indi B | 331.09767931 | −56.80099136 |
+| RW Aurigae | 76.95658774 | +30.40128852 |
+| R Draconis | 248.16722581 | +66.75502468 |
+
+Las aproximaciones originales de R Draconis (263.2, +56.9) eran incorrectas para
+este objeto y no deben reutilizarse. Las coordenadas de WISE 0855 proporcionadas
+por el reto (08h55m10.831s, −07d14m42.53s) son una referencia histórica de época
+no especificada; no equivalen al centro propagado a 2026.5.
 
 ## Historial de implementación — 2026-11-05 (superado por la validación de Etapa 1)
 
 - Preparado `test_data.py`: consulta las cuatro colecciones, ordena por MJD,
   descarga un recorte, inspecciona IMAGE y extensiones, valida el centro con WCS
   y exporta PNG más CSV e informe JSON de procedencia.
-- Dependencias mínimas del Etapa 1 en `requirements.txt`; instrucciones en README.
+- Dependencias mínimas de la Etapa 1 en `requirements.txt`; instrucciones en README.
 - Pendiente de validación: en el entorno de ejecución del agente no se encontró
   Python ni los lanzadores py/uv, y la solicitud directa a IRSA desde PowerShell
   falló por conectividad. No se ha ejecutado el script ni generado el primer FITS/PNG.
-  Las casillas del Etapa 1 siguen pendientes hasta comprobarlo en un entorno con Python.
+  En ese momento las casillas de la Etapa 1 seguían pendientes; la validación posterior está arriba.
 - Corrección de alcance: overlay Gaia/WISE (#5) es obligatorio para el objetivo
-  8/8 aunque figure arriba como bonus. Programarlo en el Etapa 6; Aladin es una opción.
+  8/8. Ya se movió al alcance de la Etapa 6; Aladin es una opción.
 - El límite de 100 KB por cutout es una hipótesis pendiente de medir; los MEF
   incluyen extensiones auxiliares. El script limita la descarga a 100 MiB por
   seguridad; ese límite no representa el tamaño esperado ni el límite de la web.

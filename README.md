@@ -29,17 +29,18 @@ limitaciones claras, para público general, docentes y aficionados.
 
 ## Estado
 
-**Etapa 1: prueba de datos completada.** Se validó el acceso a las cuatro
-colecciones, se descargó un recorte FITS real y se generó una PNG. Las cuatro
-pruebas de regresión del lector de respuestas pasan.
+**Etapas 1 y 2 completadas: acceso a datos y pipeline temporal.** Las 18 pruebas
+pasan y se generaron cinco secuencias reales de 12 frames con PNG, FITS alineados,
+GIF y manifiestos. La validación cubre el procesamiento de los campos; no
+confirma movimiento ni detectabilidad de los objetos. Los resultados y las
+limitaciones de calidad están en [VALIDATION.md](VALIDATION.md).
 
 El recorte validado corresponde a QR3/D6, con IMAGE de 49 × 49 píxeles y unidades
 MJy/sr. El archivo FITS completo del recorte ocupa 3,985,920 bytes e incluye
 extensiones auxiliares. Falta verificar la identidad del objeto en la imagen e
 interpretar los bits de FLAGS antes de aplicar máscaras de calidad.
 
-La siguiente etapa es el pipeline científico: secuencia de recortes del mismo
-detector, reproyección a un WCS común y estiramiento global.
+La siguiente etapa es la API de trabajos con polling y el reproductor web local.
 
 ## Documentación del proyecto
 
@@ -131,12 +132,11 @@ Créditos: NASA/JPL-Caltech; datos SPHEREx alojados por IRSA.
 
 ## Etapa 2: pipeline científico
 
-Implementación preparada: 17 pruebas pasan y Barnard generó una secuencia real
-de 12 frames D3 en la versión 0.2.1. Los 12 centros están enmascarados por calidad:
-esto valida el procesamiento del campo, no la detectabilidad de Barnard.
-La versión 0.2.2 corrige la aplicación de SIP a la lectura espectral y añade una
-prueba (18 en total); queda pendiente ejecutarla y regenerar la secuencia.
-También queda pendiente validar los otros cuatro objetos.
+Pipeline **0.2.2 validado** con 18 pruebas y 12 frames reales para cada uno de
+los cinco presets. La WCS celestial conserva SIP y la WCS espectral lo excluye.
+Barnard, RW Aur y R Dra tienen el centro enmascarado en los 12 frames; Epsilon
+Indi B, en 2 de 12; WISE 0855, en ninguno. Estos resultados validan cobertura y
+procesamiento; la identificación y visibilidad de las fuentes siguen pendientes.
 Python debe ejecutarse desde tu terminal.
 
 Actualizar dependencias y ejecutar todas las pruebas, sin consultas externas:
