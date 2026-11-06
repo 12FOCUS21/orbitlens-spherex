@@ -23,7 +23,10 @@
 >   El usuario confirmó manualmente «Todo está funcional» tras probar controles.
 >   El agente no realizó QA visual automatizada por error interno `timeoutMs`.
 >   Comandos en README.md y lista de revisión en STAGE3_QA.md.
-> - Siguiente paso concreto: ETAPA 4, despliegue y robustez. Conservar la regresión
+> - ETAPA 4 completada: 40 pruebas pasan en 1.241 s; frontend compilado.
+>   El usuario confirmó «Listo, funciona todo» tras la lista de validación pública.
+>   La validación de producción es manual del usuario; el agente no pudo conectar.
+> - Siguiente paso concreto: ETAPA 5, diferencia, apilado y curva de luz. Conservar la regresión
 >   ampliada/móvil de STAGE3_QA.md para producción. Los presets se cargan desde
 >   data/cache/preset_verification.json sin consultas externas al arrancar.
 > - Consultar SIA en VOTABLE con Astropy: el CSV remoto contiene JSON sin escapar.
@@ -223,11 +226,11 @@ sustituyen la evidencia de ejecución posterior del usuario, registrada arriba.
 - [x] Aviso de frescura con fechas de consulta y procesamiento; frontend compilado por el agente.
 - [x] Timeouts de conexión/lectura y reintentos selectivos con IRSA implementados.
 - [x] Limpieza por último uso, presupuesto blando conjunto de 2 GiB y protección de presets.
-- [ ] Ejecutar suite Python ampliada y volver a desplegar las mejoras de robustez.
-- [ ] Comprobar regresión pública, reinicio y separación de límites entre dos IP distintas.
+- [x] Ejecutar suite Python ampliada y volver a desplegar las mejoras de robustez: 40 pruebas pasan en 1.241 s.
+- [x] Validación pública aceptada por el usuario tras solicitar presets, reinicio y límites entre conexiones distintas: «Listo, funciona todo». Sin verificación independiente del agente.
 
-Implementación de robustez preparada; pruebas Python nuevas pendientes de ejecución
-por el usuario. El agente compiló TypeScript/Vite correctamente. La limpieza no
+Implementación de robustez validada: el usuario ejecutó las 40 pruebas correctamente
+y confirmó el funcionamiento público. El agente compiló TypeScript/Vite correctamente. La limpieza no
 interrumpe constructores activos y retiene archivos recientes; por eso el presupuesto
 no es un límite duro. Configuración y validación pública detalladas en DEPLOYMENT.md.
 
@@ -342,4 +345,7 @@ no especificada; no equivalen al centro propagado a 2026.5.
 ## Etapa 4 — preparación de despliegue
 Se añadieron render.yaml, start_server.py, prepare_deploy.py y DEPLOYMENT.md.
 El usuario ejecutó el empaquetado de los cinco presets y las 32 pruebas: todas pasan en 1.226 s. Paquete demo/cache: 126 archivos y 2,464,219 bytes. Publicado en https://orbitlens-spherex.onrender.com y confirmado funcionando por el usuario. El agente no pudo conectar para comprobar los endpoints. La etapa sigue abierta: faltan las mejoras de robustez y la regresión pública detallada.
+
+
+Cierre posterior de Etapa 4: las mejoras de robustez y la regresión pública indicadas como pendientes en el historial anterior se completaron. Suite: 40 pruebas correctas en 1.241 s. Confirmación pública del usuario: Listo, funciona todo. Próximo trabajo: Etapa 5.
 

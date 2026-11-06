@@ -9,7 +9,9 @@ Validación local confirmada por el usuario: empaquetado de los cinco presets y
 (126 archivos). El agente intentó consultar la web, `/api/health` y
 `/api/presets`, pero sus herramientas no pudieron conectar con el servicio.
 La confirmación funcional pública procede del usuario; las comprobaciones
-detalladas siguientes siguen pendientes.
+detalladas se aceptaron posteriormente con la confirmación del usuario
+«Listo, funciona todo». Las 40 pruebas de la suite ampliada pasan en 1.241 s.
+Etapa 4 completada; verificación pública manual del usuario.
 
 ## Preparación local
 
@@ -39,7 +41,7 @@ paquete en cada arranque. Un solo worker mantiene coherentes los límites y la
 cola en memoria. El servicio gratuito puede suspenderse por inactividad: el
 primer acceso puede esperar el arranque incluso con presets empaquetados.
 
-## Comprobación pública pendiente
+## Comprobación pública aceptada por el usuario
 
 - `/api/health` devuelve 200 y `cached_presets: 5`.
 - `/` muestra la aplicación y los cinco presets cargan sus imágenes.
@@ -48,7 +50,7 @@ primer acceso puede esperar el arranque incluso con presets empaquetados.
 - Validar IP recibida tras el proxy antes de dar por verificados los límites
   por visitante; no confiar indiscriminadamente en cabeceras enviadas por clientes.
 
-## Robustez implementada; validación Python y pública pendiente
+## Robustez implementada y validada
 
 - `ORBITLENS_CACHE_BYTES`: presupuesto conjunto de `data/raw` y `data/cache`,
   por defecto 2 GiB. Se limpia al arrancar y cada minuto cuando no hay búsquedas
