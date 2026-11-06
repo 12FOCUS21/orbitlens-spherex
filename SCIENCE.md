@@ -1,5 +1,32 @@
 # Decisiones científicas — Etapa 2
 
+## Etapa 5: diferencia, media por época y curva del píxel central
+
+Estos modos leen valores de los FITS alineados en MJy/sr y su máscara VALID,
+no intensidades de PNG. Se exige misma forma, WCS y unidad para combinarlos.
+La diferencia es A−B en la intersección válida. Su escala asinh es simétrica
+respecto a cero: rojo positivo, azul negativo y blanco cero; huecos transparentes.
+
+El apilado es una media aritmética por píxel de las muestras válidas. Requiere
+al menos dos contribuciones por píxel; el denominador cambia con la cobertura.
+Se limita a una época exploratoria de siete días de extremo a extremo, definida
+por el producto. No es una época física universal: puede difuminar movimiento o
+variabilidad y no se cuantifica una mejora de señal/ruido sin varianzas propagadas.
+
+Para diferencia y apilado se exige un único detector y compatibilidad entre
+todas las parejas: separación de longitudes centrales no mayor que la mitad
+del menor ancho espectral. Es una heurística de selección para exploración,
+no una calibración ni garantía de equivalencia de filtros. Usa WCS-WAVE en el
+centro; no comprueba compatibilidad espectral en cada píxel del campo. Si faltan
+longitudes/ancho, se rechaza la combinación en lugar de inventar compatibilidad.
+
+La curva usa el píxel fijo `shape // 2` de la rejilla común (misma convención del
+pipeline), conserva MJy/sr, fechas y longitudes de onda y presenta puntos sin
+unirlos. Valores enmascarados son null, nunca cero. No sigue el movimiento del
+objeto ni mide flujo integrado por apertura; no es fotometría validada. No se
+aplican correcciones de PSF, ZODI/fondo ni incertidumbres. La falta de puntos en
+Barnard, RW Aur o R Dra refleja sus máscaras y no prueba ausencia de la fuente.
+
 ## Alcance
 
 El pipeline produce una secuencia exploratoria de brillo superficial en MJy/sr.

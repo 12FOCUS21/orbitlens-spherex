@@ -1,5 +1,8 @@
 # OrbitLens — SPHEREx Time Atlas
 
+Etapa 5 preparada: diferencia A−B, apilado por época y curva exploratoria del
+píxel central. Ejecución y comprobaciones: [STAGE5_QA.md](STAGE5_QA.md).
+
 Etapa 4: despliegue público en https://orbitlens-spherex.onrender.com.
 Preparación, presupuesto de caché, configuración de colecciones, reintentos y
 validación pendiente de las mejoras: [DEPLOYMENT.md](DEPLOYMENT.md).
