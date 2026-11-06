@@ -16,7 +16,7 @@ from astropy.wcs import WCS
 from spherex_pipeline import (
     BAD_MASK, PipelineConfig, align_cutout, build_sequence, common_grid,
     flag_statistics, global_limits, group_observations, render_frame,
-    select_detector, select_times,
+    select_detector, select_times, wavelength_at_target,
 )
 from targets import SIMBAD_SERVERS, resolve_target
 
@@ -140,6 +140,31 @@ class PipelineTests(unittest.TestCase):
                 hdul.writeto(path)
             with self.assertRaisesRegex(ValueError, "Cobertura válida insuficiente"):
                 align_cutout(path, config, output_wcs, shape)
+
+    def test_spectral_wcs_ignores_sip_without_modifying_celestial_header(self):
+        with fits.open(io.BytesIO(synthetic_fits()), memmap=False) as hdul:
+            header = hdul["IMAGE"].header
+            header["CTYPE1"] = "RA---TAN-SIP"
+            header["CTYPE2"] = "DEC--TAN-SIP"
+            header["A_ORDER"] = 2
+            header["B_ORDER"] = 2
+            header["A_2_0"] = 0.1
+            header["B_0_2"] = 0.1
+            # WCS lineal auxiliar con solución conocida y unidades espectrales.
+            # La tabla real WAVE-TAB utiliza la misma entrada de píxeles sin SIP.
+            header["WCSAXESW"] = 2
+            for axis, value, step in ((1, 2., 0.01), (2, 0.05, 0.001)):
+                header[f"CTYPE{axis}W"] = "LINEAR"
+                header[f"CUNIT{axis}W"] = "um"
+                header[f"CRPIX{axis}W"] = 1.
+                header[f"CRVAL{axis}W"] = value
+                header[f"CDELT{axis}W"] = step
+            snapshot = header.tostring()
+            result = wavelength_at_target(hdul, header, 7., 9.)
+            self.assertAlmostEqual(result["central_um"], 2.07)
+            self.assertAlmostEqual(result["width_um"], 0.059)
+            self.assertEqual(header.tostring(), snapshot)
+            self.assertIsNotNone(WCS(header, hdul).sip)
 
     def test_sequence_outputs_and_cache_without_network(self):
         rows = [observation(i) for i in range(3)]

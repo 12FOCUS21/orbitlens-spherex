@@ -131,11 +131,12 @@ Créditos: NASA/JPL-Caltech; datos SPHEREx alojados por IRSA.
 
 ## Etapa 2: pipeline científico
 
-Implementación preparada: 15 pruebas pasan y el fallback de SIMBAD respondió
-desde Harvard. La secuencia real detectó un criterio demasiado restrictivo al
-descartar campos por tener el centro enmascarado; se corrigió en la versión
-0.2.1 y se añadieron dos pruebas más, pendientes de ejecutar. Sigue pendiente
-validar las secuencias reales para los cinco objetos.
+Implementación preparada: 17 pruebas pasan y Barnard generó una secuencia real
+de 12 frames D3 en la versión 0.2.1. Los 12 centros están enmascarados por calidad:
+esto valida el procesamiento del campo, no la detectabilidad de Barnard.
+La versión 0.2.2 corrige la aplicación de SIP a la lectura espectral y añade una
+prueba (18 en total); queda pendiente ejecutarla y regenerar la secuencia.
+También queda pendiente validar los otros cuatro objetos.
 Python debe ejecutarse desde tu terminal.
 
 Actualizar dependencias y ejecutar todas las pruebas, sin consultas externas:

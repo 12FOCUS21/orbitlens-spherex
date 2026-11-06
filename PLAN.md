@@ -2,10 +2,10 @@
 
 > **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
 > - Estado: ETAPA 1 validado (2026-11-05): FITS real, PNG e informe generados; 4 pruebas pasan.
->   ETAPA 2 implementada: reproject instalado y 15 pruebas pasaron en la terminal del usuario.
->   SIMBAD respondió desde Harvard; la consulta real obtuvo 119 filas QR3 y 240 QR2.
->   Los recortes se descartaron por exigir un centro válido pese a buena cobertura.
->   Corregido en pipeline 0.2.1; 2 pruebas nuevas (17 en total) y secuencia real pendientes.
+>   ETAPA 2: 17 pruebas pasaron; Barnard generó 12 frames D3 reales con pipeline 0.2.1.
+>   Sus 12 centros están enmascarados por calidad: no demuestra detectabilidad del objeto.
+>   La versión 0.2.2 corrige SIP en WCS espectral W; mantiene SIP en WCS celestial.
+>   Pendientes: ejecutar 18 pruebas, regenerar y verificar los cinco presets.
 >   No marcar la etapa completada todavía.
 >   Python solo se ejecuta desde la terminal del usuario por restricciones del entorno del agente.
 > - Lo que se verificó en vivo (fecha 2026-11-05): endpoint SIA2 de IRSA funciona,
@@ -113,11 +113,12 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - [x] Dependencia reproject e instrucciones de ejecución en README; decisiones en SCIENCE.md.
 - [x] Instalar reproject y ejecutar las primeras 13 pruebas: todas pasan.
 - [x] Ejecutar las 15 pruebas tras añadir fallback de SIMBAD: todas pasan.
-- [ ] Ejecutar las 17 pruebas tras corregir el rechazo por centro enmascarado.
-- [ ] Mismo pipeline con 8–12 cutouts del MISMO detector
-- [ ] Reproyección a WCS común (`reproject`)
-- [ ] Estiramiento GLOBAL (mismos percentiles para todos los frames, asinh)
-- [ ] Frames WebP/PNG + `manifest.json` (fecha, MJD, banda, detector, URL IRSA, parámetros, versión pipeline)
+- [x] Ejecutar las 17 pruebas tras corregir el rechazo por centro enmascarado: todas pasan.
+- [ ] Ejecutar las 18 pruebas tras corregir SIP en la WCS espectral y regenerar datos.
+- [x] Mismo pipeline con 8–12 cutouts del MISMO detector: 12 frames reales D3 (0.2.1).
+- [x] Reproyección a WCS común (`reproject`)
+- [x] Estiramiento GLOBAL (mismos percentiles para todos los frames, asinh)
+- [x] Frames WebP/PNG + `manifest.json` (fecha, MJD, banda, detector, URL IRSA, parámetros, versión pipeline)
 - [ ] **Verificar los 5 objetos del reto:** Barnard's Star, Epsilon Indi B, WISE 0855 (QR2), RW Aurigae, R Draconis
 - [ ] Anotar en este archivo qué colección y detector funciona para cada uno.
 
@@ -141,7 +142,22 @@ tenían entre 70.8% y 95.7% de cobertura válida, pero la condición adicional d
 válido los rechazó; dos solicitudes acabaron en HTTP 503. Se corrigió esa condición
 en 0.2.1: se conserva el campo si cumple la cobertura mínima y se registra el centro
 inválido, que sigue enmascarado. El GIF lo señala. Se reutilizan los recortes ya
-descargados; no hace falta --refresh. La validación de esta corrección está pendiente.
+descargados; no hace falta --refresh. El usuario validó esta corrección con 17
+pruebas y una secuencia de 12 frames. PNG inicial revisada y artefactos comprobados.
+
+El aviso SIP repetido provenía de la WCS espectral W: el tutorial oficial de IRSA
+indica que debe excluir la distorsión SIP del WCS celestial. Se corrige en 0.2.2
+mediante una copia de la cabecera sin coeficientes SIP, conservando intacta la
+transformación celestial. Las longitudes de onda del manifiesto 0.2.1 deben
+regenerarse; no usar esos valores como calibración científica.
+
+| Objeto | Colecciones en secuencia | Detector | Estado verificado |
+| --- | --- | --- | --- |
+| Barnard | QR2, QR3 | D3 | 12 frames en 0.2.1; centro enmascarado en todos; no confirma visibilidad |
+| Epsilon Indi B | Pendiente | Pendiente | Ejecutar --verify-presets |
+| WISE 0855 | QR2 en consulta inicial; secuencia pendiente | Pendiente | Ejecutar --verify-presets |
+| RW Aurigae | Pendiente | Pendiente | Ejecutar --verify-presets |
+| R Draconis | Pendiente | Pendiente | Ejecutar --verify-presets |
 
 Se comprobó directamente el mapa FLAGS del primer recorte: SOURCE (21) está activo
 en los 2,401 píxeles. También aparecen bits 0, 2, 6, 11, 17 y 28. Se conservan

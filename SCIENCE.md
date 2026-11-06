@@ -87,6 +87,13 @@ WCS alternativa `W` y su tabla WCS-WAVE. Si no se puede evaluar, se guarda el
 error y valores nulos; no se inventa una banda. Este muestreo en el centro no
 reemplaza un mapa espectral ni sigue la posición cambiante de una fuente.
 
+La WCS espectral se construye desde una copia de la cabecera sin coeficientes
+SIP y con `sip = None`, siguiendo el
+[tutorial de IRSA, sección Spectral WCS](https://github.com/Caltech-IPAC/irsa-tutorials/blob/main/tutorials/spherex/spherex_intro.md).
+La transformación celestial conserva SIP. WCS-WAVE proporciona una aproximación
+para visualización; para análisis espectral cuantitativo se necesitarán los
+productos de calibración CWAVE y CBAND, como indica la documentación de productos.
+
 La variación de banda, PSF, fondo, calibración y máscaras puede producir cambios
 visuales. El GIF de QA usa 500 ms por frame, independientemente del intervalo
 astronómico real, y no sustituye la inspección de las fechas del manifiesto.

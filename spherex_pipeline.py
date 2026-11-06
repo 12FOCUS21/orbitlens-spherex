@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import time
 import uuid
 from dataclasses import asdict, dataclass
@@ -28,7 +29,7 @@ from reproject import reproject_interp
 from test_data import COLLECTIONS, cutout_url, download, mjd_key, parse_sia_votable, query_collection
 
 
-PIPELINE_VERSION = "0.2.1"
+PIPELINE_VERSION = "0.2.2"
 PIXEL_SCALE_ARCSEC = 6.15
 FLAGS_SOURCE = "https://irsa.ipac.caltech.edu/onlinehelp/spherex/spherex/sp.html"
 FLAG_NAMES = {
@@ -167,13 +168,22 @@ def flag_statistics(flags: np.ndarray) -> tuple[np.ndarray, dict]:
 
 def wavelength_at_target(hdul, header, x: float, y: float) -> dict:
     try:
-        spectral = WCS(header, hdul, key="W")
+        # IRSA: WCS W mapea píxeles del detector a longitud de onda sin SIP.
+        # Copiar el header para conservar intacta la distorsión del WCS celestial.
+        # Retirar SIP antes de construir W evita además el aviso de Astropy.
+        spectral_header = header.copy()
+        for keyword in list(spectral_header):
+            if re.fullmatch(r"(?:A|B|AP|BP)_(?:ORDER|DMAX|\d+_\d+)", keyword):
+                del spectral_header[keyword]
+        spectral = WCS(spectral_header, hdul, key="W")
+        spectral.sip = None
         values = spectral.all_pix2world([[x, y]], 0)[0]
         wave, width = [(float(value) * u.Unit(unit)).to_value(u.um)
                        for value, unit in zip(values, spectral.world_axis_units)]
         if not (math.isfinite(wave) and math.isfinite(width) and wave > 0 and width > 0):
             raise ValueError("Longitud de onda o ancho no válido.")
-        return {"central_um": wave, "width_um": width}
+        return {"central_um": wave, "width_um": width,
+                "method": "WCS-WAVE visualization lookup, without SIP"}
     except (ValueError, KeyError, TypeError, u.UnitConversionError) as exc:
         return {"central_um": None, "width_um": None, "error": str(exc)}
 
