@@ -9,9 +9,22 @@ Tras instalar las dependencias según README, ejecutar desde la raíz:
 .\.venv\Scripts\python.exe verify_demo.py
 ```
 
-El 6 de noviembre de 2026 pasaron 52 pruebas y la verificación de los cinco ejemplos FITS del repositorio. En Barnard, intercambiar las imágenes 1 y 7 invierte el signo de la diferencia y conserva las zonas transparentes. En RW Aur, el 95,13 % del campo del apilado de las imágenes 1 y 2 tiene dos contribuciones válidas. En la curva central, WISE 0855 tiene 12 valores válidos, Epsilon Indi B tiene 10 y los otros tres campos tienen cero. Una muestra enmascarada es un dato ausente. El brillo del píxel central incluye fondo y fuentes vecinas.
+El 6 de noviembre de 2026 pasaron inicialmente 52 pruebas. Tras las correcciones
+de robustez pasan 72 pruebas Python y 10 pruebas frontend de enlaces y orden
+espectral. Estas últimas se ejecutan con `npm.cmd --prefix frontend test` y
+Node.js 22.12+. También pasa la verificación de los cinco ejemplos FITS del
+repositorio. En Barnard, intercambiar las imágenes 1 y 7 invierte el signo de la
+diferencia y conserva las zonas transparentes. En RW Aur, el 95,13 % del campo
+del apilado de las imágenes 1 y 2 tiene dos contribuciones válidas. En la curva
+central, WISE 0855 tiene 12 valores válidos, Epsilon Indi B tiene 10 y los otros
+tres campos tienen cero. Una muestra enmascarada es un dato ausente. El brillo
+del píxel central incluye fondo y fuentes vecinas.
 
 En Edge se ejecutaron los tres análisis desde el visor. A 390 píxeles de ancho el documento cabe en pantalla. Diez pestañas locales cargaron la portada simultáneamente. En el despliegue público se comprobaron la portada, salud, lista de ejemplos y el primer y último PNG de cada una de las cinco secuencias.
+Este párrafo registra la revisión previa incluida en el pull, no una repetición
+de esas comprobaciones para los cambios actuales. La regresión manual de esta
+versión está pendiente en [STAGE6_QA.md](STAGE6_QA.md), igual que la comprobación
+de cuotas por visitante tras el proxy descrita en DEPLOYMENT.md.
 
 ## Ensayo y reparto para cinco integrantes
 

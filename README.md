@@ -5,11 +5,17 @@ OrbitLens permite comparar observaciones infrarrojas de un mismo campo y revisar
 [Ver la demo pública](https://orbitlens-spherex.onrender.com) · [Pruebas y pasos de entrega](ENTREGA.md) · [Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
 
 La rama de desarrollo añade enlaces al campo, selección por longitud de onda, desglose de máscaras y acceso a los catálogos del mismo campo en Aladin Lite.
+Los enlaces conservan las coordenadas y opciones exactas del resultado, sin volver
+a resolver el preset cuando ya incluyen RA/Dec. El selector cambia de medición,
+no genera bandas. Aladin abre una vista externa, no un overlay sobre SPHEREx.
+Pruebas y revisión manual: [STAGE6_QA.md](STAGE6_QA.md).
 
 ## Estado
 
 **Verificación local actual (2026-11-06): 72 pruebas Python pasan**, con 3 avisos;
 TypeScript y Vite compilan. Se han añadido 20 pruebas de regresión de errores.
+El frontend incorpora además 10 pruebas de enlaces y orden espectral:
+`npm.cmd --prefix frontend test` (Node.js 22.12+, sin dependencias nuevas).
 La verificación del proxy y de las cuotas por visitante en Render sigue pendiente.
 
 **Etapas 1 y 2 completadas: acceso a datos y pipeline temporal.** Se generaron
