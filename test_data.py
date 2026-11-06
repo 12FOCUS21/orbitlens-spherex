@@ -1,4 +1,4 @@
-"""Prueba manual del Día 1: consulta IRSA, inspecciona un FITS y genera una PNG.
+"""Prueba manual de la Etapa 1: consulta IRSA, inspecciona un FITS y genera una PNG.
 
 Ejecutar: python test_data.py --help
 Documentación: https://irsa.ipac.caltech.edu/data/SPHEREx/docs/cutout_tool.html
