@@ -214,7 +214,8 @@ nuevo sigue pendiente en Etapa 4. Las restricciones iniciales del agente no
 sustituyen la evidencia de ejecución posterior del usuario, registrada arriba.
 
 ## ETAPA 4 — Despliegue + robustez (PRIMERO El deploy)
-- [ ] Subir a Render/Fly.io. **URL pública viva.**
+- [x] Subir a Render. **URL pública viva**, confirmada por el usuario:
+  https://orbitlens-spherex.onrender.com (verificación HTTP independiente del agente pendiente por conectividad).
 - [x] Parser RA/Dec sexagesimal (Astropy) implementado en Etapa 3 y probado con la suite
 - [ ] Caché por cache_key (RA+Dec redondeados + FOV + colecciones + versión pipeline)
 - [ ] Presets pre-cacheados al desplegar (la demo nunca depende de IRSA en vivo)
@@ -332,5 +333,5 @@ no especificada; no equivalen al centro propagado a 2026.5.
 
 ## Etapa 4 — preparación de despliegue
 Se añadieron render.yaml, start_server.py, prepare_deploy.py y DEPLOYMENT.md.
-El usuario ejecutó el empaquetado de los cinco presets y las 32 pruebas: todas pasan en 1.226 s. Paquete demo/cache: 126 archivos y 2,464,219 bytes. Pendiente publicar y validar URL pública. La etapa sigue abierta.
+El usuario ejecutó el empaquetado de los cinco presets y las 32 pruebas: todas pasan en 1.226 s. Paquete demo/cache: 126 archivos y 2,464,219 bytes. Publicado en https://orbitlens-spherex.onrender.com y confirmado funcionando por el usuario. El agente no pudo conectar para comprobar los endpoints. La etapa sigue abierta: faltan las mejoras de robustez y la regresión pública detallada.
 

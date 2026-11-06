@@ -1,11 +1,15 @@
 # Etapa 4 — Render
 
 Un servicio Python sirve la API y la compilación React. La configuración está en
-`render.yaml`; todavía no hay un despliegue público verificado.
+`render.yaml`. Despliegue público confirmado funcionando por el usuario:
+https://orbitlens-spherex.onrender.com
 
 Validación local confirmada por el usuario: empaquetado de los cinco presets y
 32 pruebas correctas en 1.226 s. El paquete generado ocupa 2,464,219 bytes
-(126 archivos). Falta comprobar el arranque de producción y la URL pública.
+(126 archivos). El agente intentó consultar la web, `/api/health` y
+`/api/presets`, pero sus herramientas no pudieron conectar con el servicio.
+La confirmación funcional pública procede del usuario; las comprobaciones
+detalladas siguientes siguen pendientes.
 
 ## Preparación local
 
