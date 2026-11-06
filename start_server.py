@@ -11,4 +11,5 @@ if __name__ == "__main__":
     bundle = base / "demo/cache"
     if bundle.is_dir():
         shutil.copytree(bundle, base / "data/cache", dirs_exist_ok=True)
-    uvicorn.run("api:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")), workers=1)
+    uvicorn.run("api:app", host="0.0.0.0", port=int(os.environ.get("PORT", "8000")), workers=1,
+                forwarded_allow_ips=os.environ.get("ORBITLENS_TRUSTED_PROXIES", "127.0.0.1"))

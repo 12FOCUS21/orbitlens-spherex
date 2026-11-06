@@ -217,11 +217,19 @@ sustituyen la evidencia de ejecución posterior del usuario, registrada arriba.
 - [x] Subir a Render. **URL pública viva**, confirmada por el usuario:
   https://orbitlens-spherex.onrender.com (verificación HTTP independiente del agente pendiente por conectividad).
 - [x] Parser RA/Dec sexagesimal (Astropy) implementado en Etapa 3 y probado con la suite
-- [ ] Caché por cache_key (RA+Dec redondeados + FOV + colecciones + versión pipeline)
-- [ ] Presets pre-cacheados al desplegar (la demo nunca depende de IRSA en vivo)
-- [ ] Config de colecciones/versión → "fácil actualización con nuevos lanzamientos"
-- [ ] Banner de frescura de datos (ingesta semanal + desfase ~1 día).
-- [ ] Timeouts y reintentos con IRSA.
+- [x] Caché por parámetros exactos, FOV, colecciones y versión pipeline; se conserva precisión de coordenadas.
+- [x] Presets empaquetados al desplegar, confirmados funcionando por el usuario.
+- [x] Configuración de colecciones mediante ORBITLENS_COLLECTIONS; regenerar presets si cambia.
+- [x] Aviso de frescura con fechas de consulta y procesamiento; frontend compilado por el agente.
+- [x] Timeouts de conexión/lectura y reintentos selectivos con IRSA implementados.
+- [x] Limpieza por último uso, presupuesto blando conjunto de 2 GiB y protección de presets.
+- [ ] Ejecutar suite Python ampliada y volver a desplegar las mejoras de robustez.
+- [ ] Comprobar regresión pública, reinicio y separación de límites entre dos IP distintas.
+
+Implementación de robustez preparada; pruebas Python nuevas pendientes de ejecución
+por el usuario. El agente compiló TypeScript/Vite correctamente. La limpieza no
+interrumpe constructores activos y retiene archivos recientes; por eso el presupuesto
+no es un límite duro. Configuración y validación pública detalladas en DEPLOYMENT.md.
 
 ## ETAPA 5 — Modos de visualización
 - [ ] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")

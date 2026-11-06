@@ -1,5 +1,9 @@
 # OrbitLens — SPHEREx Time Atlas
 
+Etapa 4: despliegue público en https://orbitlens-spherex.onrender.com.
+Preparación, presupuesto de caché, configuración de colecciones, reintentos y
+validación pendiente de las mejoras: [DEPLOYMENT.md](DEPLOYMENT.md).
+
 Explorador temporal de imágenes SPHEREx para el reto **Planet X and SPHEREx**
 de NASA Space Apps Challenge 2026.
 

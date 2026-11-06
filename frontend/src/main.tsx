@@ -67,6 +67,7 @@ function App() {
     <header className="topbar"><a className="brand" href="/" aria-label="OrbitLens inicio"><span className="orbit-icon" aria-hidden="true">◎</span> OrbitLens <span className="brand-sub">SPHEREx Time Atlas</span></a><a href="https://science.nasa.gov/mission/spherex/" target="_blank" rel="noreferrer">Acerca de SPHEREx ↗</a></header>
     <main>
       <div className="hero"><p className="eyebrow">UN CIELO. DISTINTOS MOMENTOS.</p><h1>El universo también<br /><em>cambia con el tiempo.</em></h1><p>Explora observaciones infrarrojas de SPHEREx. Recorre sus fechas y observa qué cambia en una misma región del cielo.</p></div>
+      <p className="notice">Los ejemplos son secuencias precalculadas y pueden no incluir las observaciones más recientes. El archivo se actualiza periódicamente y su índice puede tener retrasos.</p>
       <div className="workspace">
         <aside className="search-panel">
           <h2>Explorar una región</h2><p className="muted">Elige un campo precargado o busca el tuyo.</p>
@@ -91,6 +92,7 @@ function App() {
           {!job && !error && <section className="empty-view"><div className="sky-orbit" aria-hidden="true"><span>✦</span></div><p className="eyebrow">TU VENTANA AL INFRARROJO</p><h2>Empieza con un campo de ejemplo</h2><p>Las imágenes se alinean hacia el norte y comparten una misma escala de brillo para recorrer las observaciones.</p><span className="muted">5 campos · datos reales de IRSA · hasta 16 observaciones</span></section>}
           {manifest && <>
             <div className="result-heading"><div><p className="eyebrow">SECUENCIA {manifest.status === 'partial' ? 'PARCIAL' : manifest.status === 'ready' ? 'PROCESADA' : 'SIN SECUENCIA'}</p><h2>{job?.target?.main_id ?? title}</h2></div><span>{manifest.frames.length} imágenes</span></div>
+            <p className="notice">Secuencia procesada: {manifest.created_at_utc}. Consultas al archivo: {Object.entries(manifest.queries).map(([collection, query]) => `${collection}: ${query.retrieved_at_utc ?? 'fecha no disponible'}`).join(' · ')}. Estas fechas no son las fechas de observación. Las consultas nuevas reutilizan metadatos hasta siete días; los presets se actualizan al regenerar la demo.</p>
             <p className="muted coordinates">RA {manifest.parameters.ra.toFixed(6)}° · Dec {manifest.parameters.dec.toFixed(6)}° · {manifest.parameters.fov}′{job?.target?.coordinate_epoch_jyear ? ` · centro a época ${job.target.coordinate_epoch_jyear}` : ''}</p>
             {manifest.warnings?.map(warning => <p className="notice" key={warning}>{warning}</p>)}
             {manifest.frames.length > 0 && <>

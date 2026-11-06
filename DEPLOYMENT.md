@@ -48,9 +48,50 @@ primer acceso puede esperar el arranque incluso con presets empaquetados.
 - Validar IP recibida tras el proxy antes de dar por verificados los límites
   por visitante; no confiar indiscriminadamente en cabeceras enviadas por clientes.
 
-Quedan pendientes de esta etapa la limpieza de caché con presupuesto de disco,
-reintentos IRSA, configuración de colecciones y aviso de frescura. El despliegue
-público es el primer hito, no el cierre de toda la etapa.
+## Robustez implementada; validación Python y pública pendiente
+
+- `ORBITLENS_CACHE_BYTES`: presupuesto conjunto de `data/raw` y `data/cache`,
+  por defecto 2 GiB. Se limpia al arrancar y cada minuto cuando no hay búsquedas
+  activas, por antigüedad del último uso. Se conservan los cinco presets, los
+  resultados de trabajos aún vigentes y los archivos usados en la última hora.
+  El presupuesto es blando: las descargas en curso pueden superarlo. Si la
+  limpieza no libera espacio, nuevas búsquedas reciben 429; la demo sigue disponible.
+  Durante la limpieza, los resultados que no son presets pueden responder 503
+  brevemente para evitar servir archivos que están siendo eliminados.
+- IRSA: máximo tres intentos con pausas de 1 y 2 segundos para transporte y
+  HTTP 408/429/500/502/503/504. Las consultas nuevas usan conexión de 10 s y
+  lectura de 30 s. Son límites por fase de red, no un plazo total del trabajo.
+  Los errores 4xx permanentes no se reintentan. Respuestas FITS inválidas se
+  vuelven a descargar antes de descartar el candidato.
+- `ORBITLENS_COLLECTIONS`: lista ordenada, separada por comas; por defecto las
+  cuatro colecciones verificadas. La identidad de caché incluye colecciones y
+  versión. Si cambias la lista, regenera los cinco presets antes de desplegar:
+  el arranque de producción exige presets compatibles con esa configuración.
+- Las consultas almacenadas se reutilizan hasta siete días cuando se construye
+  una secuencia nueva. Las secuencias listas y presets permanecen como muestras
+  reproducibles; no se actualizan automáticamente. La interfaz muestra fechas de
+  procesamiento y consulta, distintas de la fecha de observación.
+- `ORBITLENS_TRUSTED_PROXIES`: direcciones del proxy que Uvicorn puede aceptar
+  para interpretar cabeceras reenviadas. Por defecto `127.0.0.1`. No se establece
+  `*` automáticamente. La configuración efectiva de Render y la separación de
+  visitantes deben comprobarse en producción antes de declarar verificados los
+  límites por IP. Personas detrás de una misma IP pública comparten el límite.
+
+Para comprobar los límites, usa dos conexiones distintas (por ejemplo Wi-Fi y
+datos móviles). Desde la primera, once POST seguidos de un preset en menos de
+un minuto deben producir 429; desde la segunda, la primera búsqueda debe seguir
+respondiendo 202. Espera un minuto antes de repetir. Si ambas comparten el límite,
+revisa el proxy y su configuración antes de cambiar direcciones de confianza.
+
+Ejecuta las pruebas tras estos cambios y recompila el frontend:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+npm.cmd --prefix frontend run build
+```
+
+No hace falta regenerar el paquete de presets si conservas las cuatro colecciones
+por defecto: el formato científico y la versión del pipeline siguen siendo 0.2.2.
 
 Fuentes: [FastAPI en Render](https://render.com/docs/deploy-fastapi),
 [herramientas del runtime](https://render.com/docs/native-runtimes).

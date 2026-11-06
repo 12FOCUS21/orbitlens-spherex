@@ -27,7 +27,7 @@ from astropy.wcs import WCS
 from PIL import Image
 
 
-COLLECTIONS = ("spherex_qr3", "spherex_qr3_deep", "spherex_qr2", "spherex_qr2_deep")
+from archive_config import COLLECTIONS
 SIA_URL = "https://irsa.ipac.caltech.edu/SIA"
 MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024
 
@@ -94,11 +94,18 @@ def query_collection(client: httpx.Client, collection: str, args: argparse.Names
             print(f"{collection}: {len(rows)} filas" +
                   (" (MAXREC alcanzado; lista posiblemente truncada)" if len(rows) >= args.maxrec else ""))
             return rows
-        except (httpx.HTTPError, ValueError, csv.Error):
-            if attempt == 2:
+        except (httpx.HTTPError, ValueError, csv.Error) as exc:
+            if attempt == 2 or not retryable(exc):
                 raise
             time.sleep(2 ** attempt)
     return []
+
+
+def retryable(exc):
+    """Reintentar transporte y fallos temporales, nunca 4xx permanentes."""
+    return isinstance(exc, httpx.TransportError) or (
+        isinstance(exc, httpx.HTTPStatusError) and
+        exc.response.status_code in {408, 429, 500, 502, 503, 504})
 
 
 def mjd_key(row: dict) -> float:

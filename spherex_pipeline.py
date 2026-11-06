@@ -26,7 +26,7 @@ from astropy.wcs import WCS
 from PIL import Image, ImageDraw
 from reproject import reproject_interp
 
-from test_data import COLLECTIONS, cutout_url, download, mjd_key, parse_sia_votable, query_collection
+from test_data import COLLECTIONS, cutout_url, download, mjd_key, parse_sia_votable, query_collection, retryable
 
 
 PIPELINE_VERSION = "0.2.2"
@@ -88,11 +88,12 @@ def query_observations(client: httpx.Client, config: PipelineConfig, root: Path,
     for collection in COLLECTIONS:
         path = query_dir / f"query_{collection}.vot"
         try:
-            if path.exists() and not refresh:
+            if path.exists() and not refresh and time.time() - path.stat().st_mtime < 7 * 86400:
                 found = parse_sia_votable(path.read_bytes(), collection)
             else:
                 found = query_collection(client, collection, args)
             rows.extend(found)
+            query_dir.touch()
             metadata[collection] = {
                 "rows": len(found), "possibly_truncated": len(found) >= config.maxrec,
                 "retrieved_at_utc": datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).isoformat(),
@@ -254,6 +255,7 @@ def cached_cutout(client: httpx.Client, url: str, root: Path, refresh: bool) -> 
             with fits.open(path, memmap=False) as hdul:
                 if "IMAGE" not in hdul:
                     raise ValueError("Caché FITS sin IMAGE.")
+            path.touch()
             return path
         except (OSError, ValueError):
             path.unlink(missing_ok=True)
@@ -265,9 +267,9 @@ def cached_cutout(client: httpx.Client, url: str, root: Path, refresh: bool) -> 
                 if "IMAGE" not in hdul:
                     raise ValueError("El recorte no contiene IMAGE.")
             return path
-        except (httpx.HTTPError, OSError, ValueError):
+        except (httpx.HTTPError, OSError, ValueError) as exc:
             path.unlink(missing_ok=True)
-            if attempt == 2:
+            if attempt == 2 or (isinstance(exc, httpx.HTTPError) and not retryable(exc)):
                 raise
             time.sleep(2 ** attempt)
     raise RuntimeError("Descarga sin resultado.")
@@ -278,7 +280,7 @@ def build_sequence(config: PipelineConfig, *, raw_root: Path = Path("data/raw"),
                    client: httpx.Client | None = None) -> Path:
     """Crea un manifiesto listo para consumir desde la API de la siguiente etapa."""
     if client is None:
-        with httpx.Client(timeout=60, follow_redirects=True) as owned:
+        with httpx.Client(timeout=httpx.Timeout(30, connect=10), follow_redirects=True) as owned:
             return build_sequence(config, raw_root=raw_root, cache_root=cache_root,
                                   refresh=refresh, client=owned)
     key = fingerprint({"config": asdict(config), "version": PIPELINE_VERSION,

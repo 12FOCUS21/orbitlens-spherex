@@ -27,6 +27,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from coordinates import parse_coordinates
+from archive_config import COLLECTIONS
+from disk_cache import trim
 from spherex_pipeline import PIPELINE_VERSION, PipelineConfig, build_sequence, fingerprint, write_json
 from targets import PRESETS, resolve_target
 
@@ -69,7 +71,7 @@ def config_key(config: PipelineConfig) -> str:
     values = asdict(config)
     for name in ("ra", "dec", "fov", "min_coverage"):
         values[name] = float(values[name])
-    return fingerprint(values)
+    return fingerprint({"parameters": values, "collections": COLLECTIONS, "version": PIPELINE_VERSION})
 
 
 @dataclass
@@ -105,6 +107,35 @@ class JobManager:
         # variantes de una búsqueda. Estas cerraduras solo se usan en los threads.
         self.locks: dict[str, threading.Lock] = {}
         self.lock_guard = threading.Lock()
+        self.maintenance = False
+        self.disk_bytes = 0
+        self.disk_budget = int(os.environ.get("ORBITLENS_CACHE_BYTES", str(2 * 1024**3)))
+        if self.disk_budget <= 0:
+            raise ValueError("ORBITLENS_CACHE_BYTES debe ser positivo.")
+
+    async def clean_disk(self):
+        if self.active or self.maintenance:
+            return
+        self.maintenance = True
+        try:
+            self.prune()
+            protected = {entry["result_id"] for entry in self.presets.values()}
+            protected.update(job.result_id for job in self.jobs.values() if job.result_id)
+            removed, self.disk_bytes = await asyncio.to_thread(
+                trim, self.raw_root, self.cache_root, protected, self.disk_budget)
+            for result_id in removed:
+                self.results.pop(result_id, None)
+            self.cache = {key: value for key, value in self.cache.items() if value not in removed}
+            # No hay resolutores ni constructores activos durante esta limpieza.
+            with self.lock_guard:
+                self.locks.clear()
+        except OSError:
+            logger.exception("No se pudo completar la limpieza de caché.")
+        finally:
+            self.maintenance = False
+
+    def touch(self, result_id):
+        self.results[result_id][0].parent.touch()
 
     def disk_lock(self, key):
         with self.lock_guard:
@@ -124,7 +155,7 @@ class JobManager:
                     raise ValueError("Artefacto ausente o fuera del resultado.")
         result_id = path.parent.name
         self.results[result_id] = (path, manifest)
-        if manifest["status"] == "ready":
+        if manifest["status"] == "ready" and tuple(manifest.get("collections", COLLECTIONS)) == COLLECTIONS:
             self.cache[config_key(PipelineConfig(**manifest["parameters"]))] = result_id
         return result_id
 
@@ -144,7 +175,7 @@ class JobManager:
                     result_id = PureWindowsPath(entry.get("manifest", "")).parent.name
                     if entry.get("preset") in PRESETS and result_id in self.results:
                         manifest = self.results[result_id][1]
-                        if manifest["status"] == "ready":
+                        if manifest["status"] == "ready" and tuple(manifest.get("collections", COLLECTIONS)) == COLLECTIONS:
                             self.presets[entry["preset"]] = {"result_id": result_id, "target": entry["target"]}
             except (OSError, ValueError, KeyError, TypeError):
                 logger.warning("No se pudo leer el informe de presets.")
@@ -189,11 +220,18 @@ class JobManager:
         config = self.config(body, target) if target or body.ra is not None else None
         key = config_key(config) if config else fingerprint(body.model_dump())
         result_id = self.cache.get(key) if config else None
+        if self.maintenance and result_id not in {p["result_id"] for p in self.presets.values()}:
+            raise HTTPException(429, "Caché en mantenimiento. Espera unos segundos o abre un campo precargado.",
+                                headers={"Retry-After": "5"})
         if result_id:
+            self.touch(result_id)
             job = Job(uuid.uuid4().hex, key, body, state="ready", message="Secuencia recuperada de caché.",
                       result_id=result_id, target=target, cached=True, finished=time.monotonic())
             self.jobs[job.id] = job
             return self.status(job)
+        if self.maintenance or self.disk_bytes >= self.disk_budget:
+            raise HTTPException(429, "La caché está en mantenimiento o llena. Prueba un campo precargado o espera unos minutos.",
+                                headers={"Retry-After": "60"})
         existing = self.active.get(key)
         if existing and ip in existing.owners:
             return self.status(existing)
@@ -285,7 +323,15 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
         await asyncio.to_thread(manager.load_cache)
         if os.environ.get("ORBITLENS_REQUIRE_PRESETS") == "1" and len(manager.presets) != len(PRESETS):
             raise RuntimeError("Despliegue incompleto: faltan presets compatibles. Ejecutar prepare_deploy.py antes de publicar.")
+        await manager.clean_disk()
+        async def maintain():
+            while True:
+                await asyncio.sleep(60)
+                await manager.clean_disk()
+        maintenance_task = asyncio.create_task(maintain())
         yield
+        maintenance_task.cancel()
+        await asyncio.gather(maintenance_task, return_exceptions=True)
         # No iniciar búsquedas pendientes durante el apagado del servidor.
         for task in list(manager.tasks):
             if task.get_name() in manager.pending:
@@ -321,6 +367,9 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
     def result(result_id):
         if not RESULT_ID.fullmatch(result_id) or result_id not in manager.results:
             raise HTTPException(404, "Resultado desconocido.")
+        if manager.maintenance and result_id not in {p["result_id"] for p in manager.presets.values()}:
+            raise HTTPException(503, "Caché en mantenimiento; vuelve a intentarlo en unos segundos.", headers={"Retry-After": "5"})
+        manager.touch(result_id)
         return manager.results[result_id]
 
     @app.get("/api/results/{result_id}/manifest")
