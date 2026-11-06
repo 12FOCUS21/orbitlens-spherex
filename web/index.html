@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="OrbitLens: explorador temporal de observaciones infrarrojas de SPHEREx.">
+  <title>OrbitLens · SPHEREx Time Atlas</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230c3433'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%23d9f56e' stroke-width='3'/%3E%3Ccircle cx='48' cy='19' r='5' fill='%23d9f56e'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23d9f56e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#visor">Saltar al visor</a>
+
+<header class="site-header">
+  <a class="brand" href="/" aria-label="OrbitLens, inicio">
+    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="2.2"/>
+      <ellipse cx="24" cy="24" rx="21" ry="7.5" fill="none" stroke="currentColor" stroke-width="1.4" transform="rotate(-28 24 24)"/>
+      <circle cx="37" cy="15" r="3.2" fill="currentColor"/>
+      <circle cx="24" cy="24" r="2.4" fill="currentColor"/>
+    </svg>
+    <span class="brand-text"><strong>OrbitLens</strong><small>SPHEREx Time Atlas</small></span>
+  </a>
+  <nav class="site-nav" aria-label="Secciones">
+    <a href="#visor">Visor</a>
+    <a href="#analisis">Análisis</a>
+    <a href="#campos">Campos</a>
+    <a href="#consulta">Consulta</a>
+    <a href="#como-funciona">Método</a>
+  </nav>
+  <div class="header-tools">
+    <span class="connection" id="connection" data-state="busy" title="Estado de la API">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="connection-text">Conectando…</span>
+    </span>
+    <button class="ghost small" id="help-open" type="button" aria-haspopup="dialog">Ayuda</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <p class="eyebrow">Un cielo. Distintos momentos.</p>
+    <h1 id="hero-title">El universo también<br><em>cambia con el tiempo.</em></h1>
+    <p class="lede">Explora observaciones infrarrojas de SPHEREx, recorre sus fechas y revisa qué cambia en una misma región del cielo. La herramienta propone evidencia; no confirma descubrimientos.</p>
+    <p class="notice freshness-note">Los ejemplos son secuencias precalculadas y pueden no incluir las observaciones más recientes. El índice del archivo se actualiza periódicamente y puede tener retrasos.</p>
+    <ol class="steps" aria-label="Cómo usar OrbitLens">
+      <li><span>1</span><div><strong>Elige un campo</strong><small>Cinco secuencias precargadas de SPHEREx.</small></div></li>
+      <li><span>2</span><div><strong>Recorre las fechas</strong><small>Compara, parpadea, acerca y revisa la calidad.</small></div></li>
+      <li><span>3</span><div><strong>Analiza con cautela</strong><small>Diferencia, apilado y curva del píxel central.</small></div></li>
+    </ol>
+  </section>
+
+  <section class="workspace" id="visor" aria-label="Visor de observaciones">
+    <div class="stage" id="stage">
+      <div class="stage-head">
+        <div class="stage-title">
+          <p class="field-kicker" id="field-kicker">Secuencia SPHEREx</p>
+          <h2 id="field-title">Selecciona un campo</h2>
+          <p class="coords" id="field-coords">RA — · Dec —</p>
+        </div>
+        <div class="stage-actions">
+          <span class="badge muted" id="field-status">Sin cargar</span>
+          <a class="ghost small is-disabled" id="catalog-link" href="#" target="_blank" rel="noopener" aria-disabled="true">Gaia / AllWISE ↗</a>
+          <button class="ghost small" id="share" type="button">Copiar enlace</button>
+        </div>
+      </div>
+
+      <div class="viewer" id="viewer" role="group" aria-label="Visor de imágenes SPHEREx">
+        <div class="frames" id="frames">
+          <img class="frame-a" id="frame-a" alt="" draggable="false">
+          <img class="frame-b" id="frame-b" alt="" draggable="false">
+        </div>
+        <div class="viewer-grid" aria-hidden="true"></div>
+        <div class="viewer-hud"><span id="hud-epoch">A</span><span id="hud-date">—</span></div>
+        <div class="compare-divider" id="compare-divider" hidden><span aria-hidden="true"></span></div>
+        <div class="viewer-empty" id="viewer-empty">
+          <strong id="empty-title">Cargando secuencia</strong>
+          <p id="empty-text">Consultando los campos precargados de SPHEREx.</p>
+        </div>
+      </div>
+
+      <div class="viewer-toolbar">
+        <div class="zoom-group" role="group" aria-label="Zoom del visor">
+          <button class="icon-button" id="zoom-out" type="button" aria-label="Alejar">−</button>
+          <output id="zoom-value" aria-live="polite">100 %</output>
+          <button class="icon-button" id="zoom-in" type="button" aria-label="Acercar">+</button>
+          <button class="ghost small" id="zoom-reset" type="button">Reiniciar</button>
+        </div>
+        <div class="toolbar-right">
+          <button class="ghost small" id="pixel-toggle" type="button" aria-pressed="true">Píxeles</button>
+          <button class="ghost small" id="fullscreen" type="button">Pantalla completa</button>
+          <a class="button-link small is-disabled" id="open-fits" href="#" target="_blank" rel="noopener">Abrir FITS ↗</a>
+        </div>
+      </div>
+
+      <div class="spectral-select-block">
+        <label for="measurement-select">Ir a una medición por longitud de onda</label>
+        <select id="measurement-select" disabled><option>Sin mediciones</option></select>
+        <p class="hint">Selecciona una medición existente, no una banda sintética. La longitud de onda es aproximada en el centro y las fechas pueden ser distintas.</p>
+      </div>
+
+      <div class="timeline-block">
+        <div class="timeline-head">
+          <span id="timeline-label">Fotograma — de —</span>
+          <span id="timeline-date" aria-live="polite">—</span>
+        </div>
+        <input id="timeline" type="range" min="0" max="0" step="1" value="0" aria-label="Seleccionar fotograma" disabled>
+        <div class="timeline-ends">
+          <button class="epoch-chip" id="epoch-a" type="button" aria-pressed="true"><b>A</b><span id="epoch-a-date">—</span></button>
+          <button class="epoch-chip" id="epoch-b" type="button" aria-pressed="false"><b>B</b><span id="epoch-b-date">—</span></button>
+        </div>
+      </div>
+
+      <div class="playback">
+        <button id="prev" type="button" aria-label="Fotograma anterior">←</button>
+        <button class="primary" id="play" type="button" aria-pressed="false">Reproducir</button>
+        <button id="next" type="button" aria-label="Fotograma siguiente">→</button>
+        <button id="blink" type="button" aria-pressed="false">Parpadear</button>
+        <button id="compare" type="button" aria-pressed="false">Comparar A/B</button>
+        <label class="speed">Velocidad
+          <select id="speed">
+            <option value="1600">Lenta</option>
+            <option value="1000" selected>Normal</option>
+            <option value="550">Rápida</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="compare-panel" id="compare-panel" hidden>
+        <label for="reveal">Revelar B <span id="reveal-value">50 %</span></label>
+        <input id="reveal" type="range" min="0" max="100" value="50">
+        <p class="hint">Arrastra el divisor sobre la imagen o mueve este control. A y B se eligen con los botones de época.</p>
+      </div>
+
+      <p class="stage-note" id="stage-note">Las imágenes comparten encuadre y escala de brillo. Los recuadros transparentes indican píxeles sin datos válidos.</p>
+    </div>
+
+    <aside class="inspector" aria-label="Detalles del campo">
+      <section class="inspector-block">
+        <p class="block-kicker">Resumen</p>
+        <h2>Qué estás viendo</h2>
+        <p id="summary">Cargando la secuencia y sus metadatos.</p>
+        <dl class="metrics">
+          <div><dt>Cobertura válida</dt><dd id="metric-coverage">—</dd></div>
+          <div><dt>λ en el centro</dt><dd id="metric-wavelength">—</dd></div>
+          <div><dt>Separación temporal</dt><dd id="metric-cadence">—</dd></div>
+          <div><dt>Fotogramas</dt><dd id="metric-frames">—</dd></div>
+        </dl>
+      </section>
+
+      <section class="inspector-block">
+        <p class="block-kicker">Fotogramas</p>
+        <h2>Actual y comparación</h2>
+        <div class="epoch-card" id="current-card"></div>
+        <div class="epoch-card" id="compare-card"></div>
+        <p class="no-pair-note" id="no-pair-note" hidden></p>
+      </section>
+
+      <section class="inspector-block">
+        <p class="block-kicker">Calidad</p>
+        <h2>Máscaras y cobertura</h2>
+        <p id="quality-summary">La máscara VALID del FITS decide qué píxeles pueden analizarse.</p>
+        <details id="quality-details">
+          <summary>Ver bits de calidad del fotograma actual</summary>
+          <div class="quality-bits" id="quality-bits"></div>
+        </details>
+        <p class="quality-note" id="quality-note">Los bits informativos no eliminan el píxel; los bits enmascarados sí.</p>
+      </section>
+
+      <section class="inspector-block">
+        <p class="block-kicker">Método</p>
+        <h2>Cómo se comparó</h2>
+        <p>Las imágenes se alinean por WCS y se muestran en la misma escala. Diferencia y apilado exigen la misma banda aproximada en el centro; los píxeles sin datos comunes se excluyen.</p>
+        <p><a class="button-link small" href="#analisis">Ir al análisis exploratorio ↓</a></p>
+        <details>
+          <summary>Ver procedencia de la secuencia</summary>
+          <div class="provenance" id="provenance"></div>
+        </details>
+      </section>
+
+      <section class="inspector-block caution-block">
+        <p class="block-kicker">Límite</p>
+        <h2>Objeto y detección</h2>
+        <p id="object-note">Una secuencia procesada no demuestra movimiento ni detección.</p>
+        <p class="caution">La identificación de fuentes y la interpretación física requieren revisión científica.</p>
+      </section>
+    </aside>
+  </section>
+
+  <section class="analysis-section" id="analisis" aria-labelledby="analysis-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Etapa 5 · Exploratorio</p>
+        <h2 id="analysis-title">Comparar observaciones</h2>
+      </div>
+      <p>Diferencia A − B, apilado de una época y curva del píxel central. Los resultados son evidencia para revisar, no una detección.</p>
+    </div>
+    <div class="analysis-card">
+      <div class="analysis-controls">
+        <label>Modo
+          <select id="analysis-mode">
+            <option value="difference">Diferencia A − B</option>
+            <option value="stack">Apilado de una época</option>
+            <option value="lightcurve">Curva del píxel central</option>
+          </select>
+        </label>
+        <label id="analysis-pairs-label">Parejas disponibles
+          <select id="analysis-pairs"></select>
+        </label>
+        <button id="analysis-swap" type="button" hidden>Intercambiar A y B</button>
+      </div>
+      <p class="hint" id="analysis-hint">Selecciona dos imágenes. A es la primera seleccionada y B la segunda. Rojo: A mayor; azul: B mayor; blanco: cero.</p>
+      <fieldset id="analysis-fieldset" disabled>
+        <legend>Observaciones · orden de selección: <span id="analysis-order">ninguna</span></legend>
+        <div class="analysis-selection" id="analysis-selection"></div>
+        <button type="button" id="analysis-all" hidden>Seleccionar todas</button>
+      </fieldset>
+      <p class="notice" id="analysis-issue" role="status" hidden></p>
+      <div class="analysis-actions">
+        <button class="primary" id="analysis-run" type="button" disabled>Calcular</button>
+        <span class="query-status" id="analysis-status" role="status" aria-live="polite"></span>
+      </div>
+      <div id="analysis-result" class="analysis-result"></div>
+    </div>
+  </section>
+
+  <section class="field-section" id="campos" aria-labelledby="campos-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Evidencia precargada</p>
+        <h2 id="campos-title">Campos documentados</h2>
+      </div>
+      <p>Cinco objetivos del reto con secuencias reales de 12 observaciones. El estado indica si la caché está lista.</p>
+    </div>
+    <div class="field-grid" id="field-grid"></div>
+    <p class="gallery-note">Abrir un campo no confirma movimiento. Revisa las fechas, la calidad y los límites de cada secuencia.</p>
+  </section>
+
+  <section class="query-section" id="consulta" aria-labelledby="consulta-title">
+    <div class="query-copy">
+      <p class="eyebrow">Consulta abierta</p>
+      <h2 id="consulta-title">Busca otro campo</h2>
+      <p>Busca un objeto por nombre SIMBAD o introduce coordenadas ICRS. El servidor consulta IRSA, descarga recortes y alinea la secuencia.</p>
+      <ul class="query-hints">
+        <li>RA entre 0° y menos de 360°; Dec entre −90° y +90°.</li>
+        <li>Una consulta nueva puede tardar varios minutos.</li>
+        <li>Los cinco presets se abren desde la caché local.</li>
+      </ul>
+    </div>
+    <form class="query-form" id="query" novalidate>
+      <div class="unit-toggle" role="group" aria-label="Tipo de búsqueda">
+        <button id="mode-name" type="button" aria-pressed="true">Nombre</button>
+        <button id="mode-coords" type="button" aria-pressed="false">Coordenadas</button>
+      </div>
+
+      <div id="name-fields">
+        <label>Nombre del objeto
+          <input id="name" name="name" type="text" placeholder="Ej. eps Ind B" maxlength="200" autocomplete="off">
+        </label>
+        <p class="hint">Si SIMBAD dispone de movimiento propio, la posición se propaga a 2026.5.</p>
+      </div>
+
+      <div id="coord-fields" hidden>
+        <div class="unit-toggle" role="group" aria-label="Formato de coordenadas">
+          <button id="coord-deg" type="button" aria-pressed="true">Grados</button>
+          <button id="coord-sex" type="button" aria-pressed="false">HMS / DMS</button>
+        </div>
+        <div class="form-fields" id="deg-fields">
+          <label>RA (°)<input id="ra" name="ra" type="number" step="any" min="0" max="359.999999" inputmode="decimal" placeholder="133.795129"></label>
+          <label>Dec (°)<input id="dec" name="dec" type="number" step="any" min="-90" max="90" inputmode="decimal" placeholder="-7.245147"></label>
+        </div>
+        <div class="form-fields" id="sex-fields" hidden>
+          <label>RA (h m s)<input id="ra-sex" name="ra-sex" type="text" placeholder="08 55 10.831" autocomplete="off"></label>
+          <label>Dec (° ′ ″)<input id="dec-sex" name="dec-sex" type="text" placeholder="−07 14 42.53" autocomplete="off"></label>
+        </div>
+      </div>
+
+      <div class="form-fields">
+        <label>Campo (arcmin)<input id="fov" name="fov" type="number" min="1" max="30" step="0.1" value="5"></label>
+        <label>Imágenes<input id="frame-count" name="frames" type="number" min="1" max="16" step="1" value="12"></label>
+      </div>
+      <label>Detector
+        <select id="detector" name="detector">
+          <option value="">Automático</option>
+          <option value="SPHEREx-D1">SPHEREx-D1</option>
+          <option value="SPHEREx-D2">SPHEREx-D2</option>
+          <option value="SPHEREx-D3">SPHEREx-D3</option>
+          <option value="SPHEREx-D4">SPHEREx-D4</option>
+          <option value="SPHEREx-D5">SPHEREx-D5</option>
+          <option value="SPHEREx-D6">SPHEREx-D6</option>
+        </select>
+      </label>
+
+      <div class="examples" aria-label="Ejemplos">
+        <span>Ejemplos</span>
+        <button type="button" data-example="wise">WISE 0855</button>
+        <button type="button" data-example="barnard">Barnard</button>
+        <button type="button" data-example="free">5°, −4°</button>
+        <button type="button" data-example="r-dra">R Dra</button>
+      </div>
+
+      <button class="primary query-submit" id="search" type="submit">Consultar IRSA</button>
+      <p class="query-status" id="query-status" role="status" aria-live="polite"></p>
+      <div class="progress" id="progress" hidden>
+        <div class="progress-bar"><span id="progress-bar"></span></div>
+        <div class="progress-meta"><span id="progress-text">Consultando IRSA…</span><span id="elapsed">0 s</span></div>
+      </div>
+    </form>
+  </section>
+
+  <section class="about" id="como-funciona" aria-labelledby="about-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Método</p>
+        <h2 id="about-title">Datos reales, límites claros</h2>
+      </div>
+    </div>
+    <div class="about-grid">
+      <article><span class="about-number">01</span><h3>Datos reales</h3><p>SPHEREx nivel 2 servido por NASA/IPAC IRSA. Cada fotograma conserva producto, fecha, unidades, detector y enlaces de procedencia.</p></article>
+      <article><span class="about-number">02</span><h3>Comparación honesta</h3><p>Misma banda aproximada, escala común y alineación WCS. La cobertura y las máscaras se muestran para que puedas juzgar.</p></article>
+      <article><span class="about-number">03</span><h3>Reproducible</h3><p>La caché de los presets permite repetir la demostración sin red. Una secuencia no demuestra movimiento ni un descubrimiento.</p></article>
+      <article><span class="about-number">04</span><h3>Infrarrojo y mundos fríos</h3><p>El infrarrojo ayuda a estudiar objetos fríos, como las enanas marrones. Al comparar fechas, revisa primero el fondo, la banda observada y la máscara antes de interpretar un cambio.</p></article>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div>
+    <strong>OrbitLens</strong>
+    <p>Datos de SPHEREx · NASA/JPL-Caltech · NASA/IPAC Infrared Science Archive (IRSA). Proyecto para NASA Space Apps 2026, licencia MIT.</p>
+  </div>
+  <nav aria-label="Enlaces del proyecto">
+    <a href="https://github.com/12FOCUS21/orbitlens-spherex" target="_blank" rel="noopener">Repositorio</a>
+    <a href="https://irsa.ipac.caltech.edu/Missions/spherex.html" target="_blank" rel="noopener">IRSA SPHEREx</a>
+    <a href="#top">Volver arriba</a>
+  </nav>
+</footer>
+
+<dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+  <form method="dialog">
+    <button class="dialog-close" value="close" aria-label="Cerrar ayuda">×</button>
+  </form>
+  <p class="eyebrow">Referencia rápida</p>
+  <h2 id="help-title">Atajos y glosario</h2>
+  <div class="help-grid">
+    <section>
+      <h3>Teclado</h3>
+      <dl class="shortcuts">
+        <div><dt><kbd>Espacio</kbd></dt><dd>Reproducir o pausar</dd></div>
+        <div><dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Fotograma anterior o siguiente</dd></div>
+        <div><dt><kbd>B</kbd></dt><dd>Parpadear entre A y B</dd></div>
+        <div><dt><kbd>C</kbd></dt><dd>Comparar A/B</dd></div>
+        <div><dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Zoom</dd></div>
+        <div><dt><kbd>0</kbd></dt><dd>Reiniciar el visor</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>Abrir esta ayuda</dd></div>
+      </dl>
+    </section>
+    <section>
+      <h3>Glosario</h3>
+      <dl class="glossary">
+        <div><dt>RA / Dec</dt><dd>Ascensión recta y declinación: la dirección del campo en el cielo.</dd></div>
+        <div><dt>µm</dt><dd>Micrómetro. Longitud de onda infrarroja de la banda observada.</dd></div>
+        <div><dt>MJy/sr</dt><dd>Unidad de brillo superficial del FITS calibrado.</dd></div>
+        <div><dt>Máscara VALID</dt><dd>Indica qué píxeles tienen datos utilizables. Los bits enmascarados no entran en el análisis.</dd></div>
+        <div><dt>Diferencia A − B</dt><dd>Resta píxel a píxel de dos imágenes compatibles. Un color no demuestra detección.</dd></div>
+        <div><dt>Apilado</dt><dd>Media de varios fotogramas de una época corta; reduce ruido, pero puede difuminar cambios.</dd></div>
+        <div><dt>Curva central</dt><dd>Brillo de un píxel fijo del cielo en varias fechas; no sigue al objeto.</dd></div>
+      </dl>
+    </section>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

@@ -347,13 +347,24 @@ class JobManager:
                 "manifest_url": f"/api/results/{job.result_id}/manifest" if job.result_id else None}
 
     def preset_list(self):
-        return [{"id": slug, "name": name, "cached": slug in self.presets,
-                 "frame_count": len(self.results[self.presets[slug]["result_id"]][1]["frames"]) if slug in self.presets else 0}
-                for slug, name in PRESETS.items()]
+        listed = []
+        for slug, name in PRESETS.items():
+            entry = self.presets.get(slug)
+            result_id = entry["result_id"] if entry else None
+            manifest = self.results[result_id][1] if result_id else None
+            listed.append({
+                "id": slug,
+                "name": name,
+                "cached": entry is not None,
+                "frame_count": len(manifest["frames"]) if manifest else 0,
+                "target": entry["target"] if entry else None,
+                "preview_url": f"/api/results/{result_id}/frames/0.png" if result_id else None,
+            })
+        return listed
 
 
 def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
-               frontend_root=BASE / "frontend/dist", builder=build_sequence,
+               frontend_root=BASE / "web", builder=build_sequence,
                resolver=resolve_target, max_heavy=3, per_ip=2, per_minute=10):
     manager = JobManager(Path(raw_root), Path(cache_root), builder, resolver, max_heavy, per_ip, per_minute)
 
@@ -504,7 +515,7 @@ def create_app(*, raw_root=BASE / "data/raw", cache_root=BASE / "data/cache",
     else:
         @app.get("/")
         async def no_build():
-            return JSONResponse({"message": "Compila la web: cd frontend; npm install; npm run build. API disponible en /docs."}, status_code=503)
+            return JSONResponse({"message": "Falta la web estática en web/. API disponible en /docs."}, status_code=503)
     return app
 
 

@@ -2,6 +2,10 @@
 
 ## Implementado y comprobable localmente
 
+La interfaz de trabajo es `web/` (vanilla). La versión React anterior se conserva
+en `frontend/` como referencia histórica. La suite Node de enlaces/orden espectral
+ejercita ahora los módulos de `web/`.
+
 - Selector de mediciones ordenado por longitud de onda aproximada en el centro.
   Conserva los índices originales y no modifica el orden temporal de los FITS.
   No crea bandas nuevas ni convierte IMAGE en un cubo espectral.
@@ -24,12 +28,12 @@
 
 ## Pruebas automatizadas
 
-Desde la raíz, con Node.js 22.12+ (las pruebas usan eliminación de tipos nativa):
+Desde la raíz, con Node.js 22.12+:
 
 ```powershell
 npm.cmd --prefix frontend test
-npm.cmd --prefix frontend run build
-.\.venv\Scripts\python.exe -m pytest -q
+npm.cmd --prefix frontend run test:web
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 .\.venv\Scripts\python.exe verify_demo.py
 ```
 
@@ -39,7 +43,7 @@ ni consultas remotas. No ejecutan React en un navegador. La suite Python y
 
 ## Guía de regresión manual
 
-La regresión funcional automatizada en Edge de `STAGE7_QA.md` ya comprueba
+La regresión funcional automatizada en Edge de `STAGE7_QA.md` comprueba
 enlaces, controles, análisis, calidad y ausencia de desbordamiento a 390 px.
 La lista siguiente conserva tareas manuales: no sustituye pruebas en dispositivo
 real ni la comprobación de catálogos disponibles y cuotas en producción.

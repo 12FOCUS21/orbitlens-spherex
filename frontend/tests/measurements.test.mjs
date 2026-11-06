@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { wavelengthOrder } from '../src/measurements.ts'
+import { wavelengthOrder } from '../../web/measurements.js'
 
 const frame = (wave, mjd) => ({ wavelength_at_target: { central_um: wave }, mjd })
 

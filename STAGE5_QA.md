@@ -1,19 +1,20 @@
 # Etapa 5 — comparación exploratoria
 
-Implementada; suite Python ejecutada localmente: **76 pruebas pasan** (2026-11-06),
-con 3 avisos conocidos. TypeScript/Vite compilan. Los modos se comprobaron además
-con Playwright/Edge headless y los FITS empaquetados, en escritorio y viewport
+Implementada; **77 pruebas Python pasan** (2026-11-06), con avisos conocidos.
+Los modos funcionan en la interfaz vanilla `web/` y se comprobaron con
+Playwright/Edge headless y los FITS empaquetados, en escritorio y viewport
 móvil; ver STAGE7_QA.md. Esto no sustituye revisión científica ni un dispositivo real.
 
 ## Validación local
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-npm.cmd --prefix frontend run build
-.\.venv\Scripts\python.exe -m uvicorn api:app --host 127.0.0.1 --port 8000 --workers 1
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend run test:web
+.\.venv\Scripts\python.exe start_server.py
 ```
 
-Suite actual: 76 pruebas, incluidas doce de análisis, veinte regresiones de errores
+Suite actual: 77 pruebas, incluidas doce de análisis, veinte regresiones de errores
 y cuatro del smoke de entrega. Verifican signo
 de la diferencia, máscaras, denominador de la media, color y orientación del PNG,
 ceros frente a ausentes, incompatibilidad espectral, épocas, duplicados, WCS,
@@ -24,8 +25,8 @@ posiciones celestes de los píxeles, no comparando cabeceras como texto. Las fec
 MJD-OBS diferentes no deben invalidar la alineación. Una prueba específica cubre
 ese caso y otra conserva el rechazo cuando cambia CRVAL1.
 La interfaz enumera parejas compatibles, permite intercambiar A/B y bloquea el
-cálculo de selecciones incompatibles con una explicación previa. Compilación
-TypeScript/Vite correcta; suite Python ejecutada y correcta.
+cálculo de selecciones incompatibles con una explicación previa. Los módulos
+vanilla pasan `node --check`; la suite Python está ejecutada y correcta.
 
 ## Revisión manual
 

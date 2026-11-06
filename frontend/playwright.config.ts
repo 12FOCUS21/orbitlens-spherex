@@ -15,6 +15,7 @@ const executablePath = process.env.ORBITLENS_BROWSER ?? (process.platform === 'w
 
 export default defineConfig({
   testDir: './e2e',
+  testMatch: 'viewer.spec.ts',
   fullyParallel: false,
   workers: 1,
   retries: 0,

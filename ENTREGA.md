@@ -7,12 +7,14 @@ Tras instalar las dependencias según README, ejecutar desde la raíz:
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests
 .\.venv\Scripts\python.exe verify_demo.py
-npm.cmd --prefix frontend run build
 .\.venv\Scripts\python.exe verify_release.py
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend run test:web
 ```
 
 El 6 de noviembre de 2026 pasaron inicialmente 52 pruebas. Tras las correcciones
-de robustez y el smoke de entrega pasan 76 pruebas Python y 10 pruebas frontend de enlaces y orden
+de robustez y el smoke de entrega pasan 77 pruebas Python y 10 pruebas frontend de enlaces y orden
 espectral. Estas últimas se ejecutan con `npm.cmd --prefix frontend test` y
 Node.js 22.12+. También pasa la verificación de los cinco ejemplos FITS del
 repositorio. En Barnard, intercambiar las imágenes 1 y 7 invierte el signo de la
@@ -33,9 +35,11 @@ un navegador. La matriz de 15 casos y los tres ensayos pendientes están en
 Posteriormente se ejecutaron 20 casos E2E con Playwright y Edge headless en
 escritorio y viewport móvil de 390 px, incluidos diez tabs reales simultáneos,
 los tres análisis y el fallo de CDS. La suite se repite con
-`npm.cmd --prefix frontend run test:e2e` y usa caché temporal y cuota elevada solo
-para pruebas. No verifica la carga correcta de catálogos externos, un móvil físico
-ni el proxy de producción. Los tres ensayos de presentación siguen pendientes.
+`npm.cmd --prefix frontend run test:e2e` para la versión React histórica y con
+`npm.cmd --prefix frontend run test:web` para la interfaz vanilla de trabajo
+(20/20 casos). Ambas usan caché temporal y cuota elevada solo para pruebas. No
+verifican la carga correcta de catálogos externos, un móvil físico ni el proxy
+de producción. Los tres ensayos de presentación siguen pendientes.
 Una comprobación directa de lectura pública el 2026-11-06 confirmó salud y cinco
 presets en 200, frontend JS/CSS idéntico al build local y acceso al primer/último
 PNG/FITS de cada secuencia, cinco GIF y cinco target.json. No se hicieron POST ni

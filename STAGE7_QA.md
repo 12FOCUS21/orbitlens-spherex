@@ -3,15 +3,14 @@
 ## Comprobación automática local
 
 Tras instalar las dependencias Python, restaurar también las dependencias de
-desarrollo frontend con `npm.cmd --prefix frontend ci`.
+desarrollo Playwright con `npm.cmd --prefix frontend ci` (solo para pruebas).
 
 ```powershell
 npm.cmd --prefix frontend test
-npm.cmd --prefix frontend run build
-.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
 .\.venv\Scripts\python.exe verify_demo.py
 .\.venv\Scripts\python.exe verify_release.py
-npm.cmd --prefix frontend run test:e2e
+npm.cmd --prefix frontend run test:web
 ```
 
 `verify_release.py` comprueba la aplicación mediante HTTP en proceso, sobre una
@@ -35,6 +34,18 @@ Render ni verifica separación de IP tras su proxy. La lectura científica de lo
 FITS se verifica por separado con `verify_demo.py`. Aladin requiere QA con red.
 
 ## Regresión funcional en navegador — 2026-11-06
+
+La versión de trabajo tiene su propia suite en `frontend/e2e/vanilla.spec.ts`:
+`npm.cmd --prefix frontend run test:web`. Sirve `web/` desde un servidor E2E
+exclusivo con copia temporal del bundle y comprueba los cinco presets, enlaces,
+formulario, selector espectral, FLAGS, diferencia/inversión de signo, apilado,
+curvas con valores ausentes, errores de URL, Aladin sin CDS, dos frames y diez
+pestañas simultáneas, en escritorio y 390 px: **20/20 casos correctos**. No ejecuta
+búsquedas nuevas en IRSA ni valida catálogos disponibles en CDS.
+
+La evidencia siguiente corresponde a la suite histórica de la interfaz React,
+conservada en `frontend/e2e/viewer.spec.ts` y ejecutable por separado con
+`npm.cmd --prefix frontend run test:e2e`.
 
 **20 casos correctos en Edge 156.0.4314.58 headless en Windows**: diez pruebas
 en escritorio (1365×900) y las mismas diez a 390×844 con emulación móvil.

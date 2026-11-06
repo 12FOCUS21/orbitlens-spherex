@@ -2,9 +2,17 @@
 
 ## Estado vigente — 2026-11-06
 
-- 76 pruebas Python pasan, 3 avisos conocidos; TypeScript/Vite compilan.
+- Interfaz de trabajo: `web/` vanilla, servida por FastAPI. Integra el visor de
+  ayer con las funciones de `main`: análisis, selector espectral, enlaces exactos,
+  máscaras y vista externa Gaia/AllWISE. `frontend/` conserva la versión React
+  histórica; Render ya no la compila. Validación local: 77 pruebas Python,
+  10 pruebas Node, `verify_demo.py`, `verify_release.py` y regresión Edge de
+  `npm.cmd --prefix frontend run test:web`.
+
+- 77 pruebas Python pasan, avisos conocidos; la versión React histórica compilaba con TypeScript/Vite.
 - Etapa 6: enlaces y orden espectral tienen 10 pruebas frontend con runner nativo
-  de Node. Implementación del MVP aceptada funcionalmente; no incluye comparación
+  de Node (ahora sobre `web/`). Implementación del MVP aceptada funcionalmente;
+  no incluye comparación
   científica conjunta entre detectores. Regresión en STAGE6_QA.md.
 - Etapa 7: smoke HTTP local reproducible en `verify_release.py`, con diez visitas
   concurrentes, artefactos completos, dos campos repetidos y cuota local. Matriz
@@ -26,7 +34,7 @@
   no el estado vigente. Identidades, detecciones y movimientos no están validados
   científicamente. Video, ensayos y submission no se consideran terminados.
 
-> **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
+> **REGISTRO HISTÓRICO de etapas previas (el estado vigente está arriba):**
 > - Estado: ETAPAS 1, 2 y 3 completadas: datos, pipeline y web local.
 >   Pipeline 0.2.2: 18 pruebas pasan; cinco presets con 12 frames cada uno.
 >   Datos revisados: 60 PNG, 60 FITS alineados y cinco GIF; sin artefactos faltantes.

@@ -1,4 +1,4 @@
-"""Smoke HTTP local del bundle y frontend compilado, sin consultar servicios remotos."""
+"""Smoke HTTP local del bundle y frontend estático, sin consultar servicios remotos."""
 from __future__ import annotations
 
 import argparse
@@ -23,12 +23,12 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def verify_release(bundle=BASE / "demo/cache", frontend=BASE / "frontend/dist"):
+def verify_release(bundle=BASE / "demo/cache", frontend=BASE / "web"):
     """Trabaja sobre una copia temporal: no modifica la caché ni sus mtimes originales."""
     bundle, frontend = Path(bundle).resolve(), Path(frontend).resolve()
     require((bundle / "preset_verification.json").is_file(), "Falta el informe del bundle.")
-    require((frontend / "index.html").is_file(), "Falta frontend/dist; ejecuta npm --prefix frontend run build.")
-    require((frontend / "catalogos.html").is_file(), "Falta la vista de catálogos en el frontend compilado.")
+    require((frontend / "index.html").is_file(), "Falta el frontend estático; comprueba web/index.html.")
+    require((frontend / "catalogos.html").is_file(), "Falta la vista de catálogos en el frontend estático.")
 
     def forbidden(*args, **kwargs):
         raise RuntimeError("El smoke debe usar la caché, nunca resolver nombres ni construir secuencias.")
@@ -121,7 +121,7 @@ def verify_release(bundle=BASE / "demo/cache", frontend=BASE / "frontend/dist"):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--bundle", type=Path, default=BASE / "demo/cache")
-    parser.add_argument("--frontend", type=Path, default=BASE / "frontend/dist")
+    parser.add_argument("--frontend", type=Path, default=BASE / "web")
     args = parser.parse_args()
     try:
         report = verify_release(args.bundle, args.frontend)
