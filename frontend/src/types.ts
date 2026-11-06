@@ -12,12 +12,12 @@ export interface Job {
 export interface Frame {
   image_url: string; fits_url: string; mjd: number; date_utc: string
   detector: string; collection: string; cutout_url: string
-  quality: { valid_coverage: number; center_pixel_valid: boolean; center_pixel_flag_names: string[] }
+  quality: { masked_fraction?: number; bits?: {bit:number; name:string; fraction:number; masked:boolean}[]; valid_coverage: number; center_pixel_valid: boolean; center_pixel_flag_names: string[] }
   wavelength_at_target: { central_um: number | null; width_um: number | null }
 }
 export interface Manifest {
   status: string; detector: string; created_at_utc: string
-  parameters: { ra: number; dec: number; fov: number }
+  parameters: { ra: number; dec: number; fov: number; frames?: number; detector?: string | null }
   frames: Frame[]; warnings?: string[]; caveats: string[]; credit: string
   requested_count_reached?: boolean
   queries: Record<string, { rows?: number; possibly_truncated?: boolean; error?: string; retrieved_at_utc?: string }>
