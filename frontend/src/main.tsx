@@ -51,12 +51,40 @@ function App() {
         next = await api<Job>(`/api/status/${next.job_id}`, { signal: controller.signal })
         setJob(next)
       }
-      if (next.manifest_url) setManifest(await api<Manifest>(next.manifest_url, { signal: controller.signal }))
+      if (next.manifest_url) {
+        const result = await api<Manifest>(next.manifest_url, { signal: controller.signal })
+        setManifest(result)
+        const params = new URLSearchParams()
+        if (typeof body.preset === 'string') params.set('preset', body.preset)
+        for (const key of ['ra', 'dec', 'fov', 'frames', 'detector'] as const) {
+          const value = result.parameters[key]
+          if (value != null) params.set(key, String(value))
+        }
+        history.replaceState(null, '', '?' + params.toString())
+      }
       else if (next.status === 'error') setError(next.message)
     } catch (reason) {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'La búsqueda no pudo completarse.')
     } finally { if (!controller.signal.aborted) setBusy(false) }
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const preset = params.get('preset')
+    const ra = params.get('ra'), dec = params.get('dec')
+    if (!preset && (ra === null || dec === null)) return
+    const fov = Number(params.get('fov') ?? 5), frames = Number(params.get('frames') ?? 12)
+    const detector = params.get('detector') || null
+    // StrictMode cleans up the first mount before it can submit a duplicate job.
+    const timer = window.setTimeout(() => {
+      if (preset && Object.prototype.hasOwnProperty.call(labels, preset)) void search({ preset }, labels[preset])
+      else if (ra && dec) {
+        setMode('coordinates'); setRa(ra); setDec(dec); setFov(fov); setCount(frames); setDetector(detector ?? '')
+        void search({ ra, dec, fov, frames, detector }, 'Coordenadas ICRS')
+      } else setError('El enlace no contiene un campo reconocido.')
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -97,6 +125,7 @@ function App() {
             <p className="muted coordinates">RA {manifest.parameters.ra.toFixed(6)}° · Dec {manifest.parameters.dec.toFixed(6)}° · {manifest.parameters.fov}′{job?.target?.coordinate_epoch_jyear ? ` · centro a época ${job.target.coordinate_epoch_jyear}` : ''}</p>
             {manifest.warnings?.map(warning => <p className="notice" key={warning}>{warning}</p>)}
             {manifest.frames.length > 0 && <>
+              <p><a href={location.href}>Enlace a este campo</a> · <a href={'/catalogos.html?' + new URLSearchParams({ra: String(manifest.parameters.ra), dec: String(manifest.parameters.dec), fov: String(manifest.parameters.fov)})} target="_blank" rel="noreferrer">Explorar Gaia y AllWISE en Aladin ↗</a></p>
               <Player key={job?.job_id} manifest={manifest} />
               {job?.manifest_url && <Analysis key={`analysis-${job.job_id}`} manifest={manifest} manifestUrl={job.manifest_url} />}
               <p className="notice spectral">Mismo detector no implica misma longitud de onda. Cambios de brillo pueden depender de la banda observada. La longitud de onda indicada es aproximada.</p>
@@ -107,6 +136,7 @@ function App() {
           </>}
         </div>
       </div>
+      <details className="evidence"><summary>Cómo interpretar el infrarrojo</summary><p>Una enana marrón es un objeto que carece de masa suficiente para sostener la fusión de hidrógeno. El infrarrojo permite estudiar objetos fríos como WISE 0855. Al alternar fechas, compara primero estrellas del fondo: si todo el campo salta, revisa la alineación. Si cambia el brillo, compara también la longitud de onda y las máscaras.</p></details>
       <p className="science-footer">Herramienta exploratoria. Una secuencia procesada no confirma movimiento ni descubrimientos. La identificación de las fuentes requiere revisión científica.</p>
     </main>
     <footer><span>OrbitLens · Planet X and SPHEREx</span><span>Datos: NASA/JPL-Caltech · Archivo IRSA</span></footer>
