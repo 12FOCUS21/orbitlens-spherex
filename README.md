@@ -128,3 +128,76 @@ revisar los datos antes de asumir una estructura científica.
 Fuentes: [servicio oficial de recortes de IRSA](https://irsa.ipac.caltech.edu/data/SPHEREx/docs/cutout_tool.html)
 y [acceso a datos SPHEREx](https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access/).
 Créditos: NASA/JPL-Caltech; datos SPHEREx alojados por IRSA.
+
+## Etapa 2: pipeline científico
+
+Implementación preparada: 15 pruebas pasan y el fallback de SIMBAD respondió
+desde Harvard. La secuencia real detectó un criterio demasiado restrictivo al
+descartar campos por tener el centro enmascarado; se corrigió en la versión
+0.2.1 y se añadieron dos pruebas más, pendientes de ejecutar. Sigue pendiente
+validar las secuencias reales para los cinco objetos.
+Python debe ejecutarse desde tu terminal.
+
+Actualizar dependencias y ejecutar todas las pruebas, sin consultas externas:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Construir una secuencia de hasta 12 observaciones del mismo detector:
+
+```powershell
+.\.venv\Scripts\python.exe build_sequence.py --preset barnard
+```
+
+Los presets disponibles son `barnard`, `epsilon-indi-b`, `wise0855`, `rw-aur` y
+`r-dra`. Se consultan en SIMBAD, con propagación de movimiento propio a la época
+de referencia cuando está disponible. También se puede introducir un nombre
+con `--name`, o coordenadas fijas con `--ra` y `--dec`.
+
+Si SIMBAD Strasbourg no responde, se intenta el mirror de Harvard. Cada servidor
+tiene 10 s para conectar y 30 s para las demás fases de red. Se registra qué
+servidor proporcionó las coordenadas. Si ambos fallan, el proceso lo informa sin
+sustituir las coordenadas del objeto por otras aproximadas. Las resoluciones
+exitosas se guardan en `data/raw/targets/` para reutilizarlas.
+
+```powershell
+.\.venv\Scripts\python.exe build_sequence.py --preset wise0855 --frames 8
+.\.venv\Scripts\python.exe build_sequence.py --ra 269.452 --dec 4.693 --detector SPHEREx-D1
+.\.venv\Scripts\python.exe build_sequence.py --verify-presets
+```
+
+El ejemplo con coordenadas explora el campo de referencia de la Etapa 1; no
+identifica a Barnard en esa época. `--verify-presets` procesa los cinco objetos
+secuencialmente y escribe `data/cache/preset_verification.json`. La existencia
+de cobertura no demuestra que el objeto sea visible ni que se haya movido.
+
+Cada ejecución indica la carpeta de salida en `data/cache/`, con:
+
+- `manifest.json`: fechas UTC/MJD, detector, colecciones, fuentes, WCS común,
+  escala global, longitud de onda del centro y calidad por frame.
+- `frames/*.png`: imágenes RGBA, alineadas y con escala visual compartida.
+- `aligned/*.fits`: brillo superficial reproyectado, FLAGS y mapa VALID.
+- `preview.gif`: animación auxiliar de QA, con fecha y detector.
+- `target.json`: coordenadas de referencia y procedencia de la resolución.
+
+Los recortes originales y las respuestas de consulta se conservan en
+`data/raw/`. Las secuencias listas se reutilizan por clave de parámetros y
+versión del pipeline; `--refresh` vuelve a consultar y descargar conservando las
+secuencias previas. Las fechas de consulta quedan registradas. Aún no se aplica
+limpieza LRU ni caducidad automática de caché.
+
+Opciones: `--fov` (1–30 arcmin), `--frames` (1–16), `--maxrec` (hasta 10000 por
+colección), `--epoch` (año juliano), `--detector`, `--raw-root` y `--cache-root`.
+El detector automático prioriza diversidad de fechas; la lista podría estar
+truncada por MAXREC. Si quedan menos de tres frames, se informa `partial`.
+Una secuencia `ready` puede tener menos frames de los solicitados si no hay
+suficientes recortes válidos; el manifiesto conserva los fallos.
+Un centro enmascarado no descarta todo el frame: sus píxeles permanecen
+transparentes, se registra su calidad y el GIF muestra `CENTER MASKED`.
+`ready` describe una secuencia procesada, no la detectabilidad de la fuente central.
+
+Las decisiones de máscara, reproyección y limitaciones se documentan en
+[SCIENCE.md](SCIENCE.md). La información espectral no es un cubo de IMAGE:
+se consulta la WCS de longitud de onda, y no se mezclan detectores en la secuencia.

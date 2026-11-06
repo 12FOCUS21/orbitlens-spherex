@@ -1,7 +1,12 @@
 # PLAN — Planet X and SPHEREx (NASA Space Apps 2026)
 
 > **CONTEXTO PARA NUEVA SESIÓN (leer primero):**
-> - Estado: DÍA 1 validado (2026-11-05): FITS real, PNG e informe generados; 4 pruebas pasan.
+> - Estado: ETAPA 1 validado (2026-11-05): FITS real, PNG e informe generados; 4 pruebas pasan.
+>   ETAPA 2 implementada: reproject instalado y 15 pruebas pasaron en la terminal del usuario.
+>   SIMBAD respondió desde Harvard; la consulta real obtuvo 119 filas QR3 y 240 QR2.
+>   Los recortes se descartaron por exigir un centro válido pese a buena cobertura.
+>   Corregido en pipeline 0.2.1; 2 pruebas nuevas (17 en total) y secuencia real pendientes.
+>   No marcar la etapa completada todavía.
 >   Python solo se ejecuta desde la terminal del usuario por restricciones del entorno del agente.
 > - Lo que se verificó en vivo (fecha 2026-11-05): endpoint SIA2 de IRSA funciona,
 >   filas reales con access_url/detector/MJD; cutouts vía `access_url?center=RA,Dec&size=grados`;
@@ -9,11 +14,12 @@
 > - Decisión de alcance: cubrir TODAS las consideraciones del enunciado (8/8) + extras
 >   funcionales. El enunciado NO pide "escalabilidad" literal; robustez = semáforo +
 >   límites por IP + caché compartida + presets cálidos (todo sin Redis/Postgres).
-> - Stack: React+Vite servido por FastAPI (UN servicio en Render). Deploy temprano (día 4).
-> - Equipo: el usuario programa solo días 1–7; días 8–9 (14–15 nov, hackathon) los 5 juntos
+> - Stack: React+Vite servido por FastAPI (UN servicio en Render). Deploy temprano (etapa 4).
+> - Equipo: el usuario programa solo etapas 1–7; etapas 8–9 (14–15 nov, hackathon) los 5 juntos
 >   (QA fantasma, video, pitch, submission). Compañeros SIN experiencia técnica.
-> - Siguiente paso concreto: DÍA 2, pipeline de 8–12 recortes del mismo detector,
->   reproyección WCS y estiramiento global. Antes: verificar coordenadas/época y bits FLAGS.
+> - Siguiente paso concreto: volver a ejecutar unittest y
+>   `build_sequence.py --preset barnard`; después `build_sequence.py --verify-presets`.
+>   Revisar GIF, manifest.json y preset_verification.json antes de pasar a la API.
 > - Consultar SIA en VOTABLE con Astropy: el CSV remoto contiene JSON sin escapar.
 >   IMAGE es 2D (49×49 en el recorte probado); no es un cubo espectral.
 > - Fuentes contextuales del reto en esta carpeta: `chat.md` (conversación previa con otra
@@ -25,7 +31,7 @@
 
 ## Verificado (datos reales de IRSA)
 
-- Endpoint SIA2: `https://irsa.ipac.caltech.edu/SIA?COLLECTION=<coleccion>&POS=circle+RA+DEC+RADIO&RESPONSEFORMAT=CSV`
+- Endpoint SIA2: `https://irsa.ipac.caltech.edu/SIA?COLLECTION=<coleccion>&POS=circle+RA+DEC+RADIO&RESPONSEFORMAT=VOTABLE`
   - Colecciones: `spherex_qr3`, `spherex_qr3_deep`, `spherex_qr2`, `spherex_qr2_deep`
   - `MAXREC=n` funciona; `limit` NO (usar MAXREC).
 - Cada fila devuelve `access_url` (un FITS de ~60–72 MB por imagen), `energy_bandpassname`
@@ -77,7 +83,7 @@ Consideraciones adicionales del enunciado (la versión de chat.md estaba truncad
 
 ---
 
-## DÍA 1 — Prueba de datos
+## ETAPA 1 — Prueba de datos
 - [x] Entorno Python (venv) + dependencias mínimas de `requirements.txt`.
   `reproject`, FastAPI y uvicorn se incorporarán cuando se necesiten.
 - [x] Script `test_data.py`:
@@ -102,7 +108,12 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - La imagen es espacial 2D; no implementar el selector espectral como planos de un
   cubo. Revisar la información de longitud de onda antes de diseñar ese selector.
 
-## DÍA 2 — Pipeline científico
+## ETAPA 2 — Pipeline científico
+- [x] Implementación preparada: `spherex_pipeline.py`, `build_sequence.py`, `targets.py`.
+- [x] Dependencia reproject e instrucciones de ejecución en README; decisiones en SCIENCE.md.
+- [x] Instalar reproject y ejecutar las primeras 13 pruebas: todas pasan.
+- [x] Ejecutar las 15 pruebas tras añadir fallback de SIMBAD: todas pasan.
+- [ ] Ejecutar las 17 pruebas tras corregir el rechazo por centro enmascarado.
 - [ ] Mismo pipeline con 8–12 cutouts del MISMO detector
 - [ ] Reproyección a WCS común (`reproject`)
 - [ ] Estiramiento GLOBAL (mismos percentiles para todos los frames, asinh)
@@ -110,7 +121,34 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - [ ] **Verificar los 5 objetos del reto:** Barnard's Star, Epsilon Indi B, WISE 0855 (QR2), RW Aurigae, R Draconis
 - [ ] Anotar en este archivo qué colección y detector funciona para cada uno.
 
-## DÍA 3 — API + web mínima (ya con modelo asincrónico de uso masivo)
+La validación real de esta etapa está pendiente. El pipeline ya implementa selección
+temporal de un detector, deduplicación de exposiciones, margen espacial de recorte,
+reproyección bilineal, máscara conservadora por bits, escala global, PNG RGBA,
+FITS alineados, GIF de QA y manifiesto. Los recortes y consultas se reutilizan en
+disco; una secuencia lista se identifica por parámetros y versión del pipeline.
+
+SIMBAD/TAP resuelve los presets con movimiento propio hacia una época de referencia
+cuando hay datos. Esto no confirma identificación ni detectabilidad. Los presets
+no usan silenciosamente las coordenadas aproximadas antiguas si SIMBAD falla.
+`--verify-presets` genera el informe reproducible para revisar los cinco objetos.
+Tras el timeout de SIMBAD reportado por el usuario, el resolver intenta Strasbourg
+y después Harvard, con 10 s para conectar y 30 s para las demás fases de red.
+Registra el servidor que respondió y los fallos anteriores en target.json.
+
+En la ejecución real posterior, Harvard respondió y se obtuvieron 119 filas QR3
+y 240 QR2 sin truncamiento. El detector automático fue D3. Los recortes descargados
+tenían entre 70.8% y 95.7% de cobertura válida, pero la condición adicional de centro
+válido los rechazó; dos solicitudes acabaron en HTTP 503. Se corrigió esa condición
+en 0.2.1: se conserva el campo si cumple la cobertura mínima y se registra el centro
+inválido, que sigue enmascarado. El GIF lo señala. Se reutilizan los recortes ya
+descargados; no hace falta --refresh. La validación de esta corrección está pendiente.
+
+Se comprobó directamente el mapa FLAGS del primer recorte: SOURCE (21) está activo
+en los 2,401 píxeles. También aparecen bits 0, 2, 6, 11, 17 y 28. Se conservan
+SOURCE y FULLSAMPLE; los problemas instrumentales documentados se enmascaran por
+separado. La política exacta y sus limitaciones se registran en SCIENCE.md.
+
+## ETAPA 3 — API + web mínima (ya con modelo asincrónico de uso masivo)
 - [ ] `POST /api/search` encola (semáforo máx. 3) → `job_id`; `GET /api/status/{job_id}` para polling
 - [ ] Límite por IP (2 en curso, ~10/min) → HTTP 429 con mensaje amable
 - [ ] `GET /api/presets`
@@ -119,7 +157,7 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - [ ] Estados: buscando / en cola (posición) / vacío (+sugerencias) / parcial / listo / errores claros
 - [ ] **Entregable:** la web funciona en localhost con datos reales.
 
-## DÍA 4 — Despliegue + robustez (PRIMERO El deploy)
+## ETAPA 4 — Despliegue + robustez (PRIMERO El deploy)
 - [ ] Subir a Render/Fly.io. **URL pública viva.**
 - [ ] Parser RA/Dec sexagesimal (Astropy) — aceptar `08h55m10.831s`/`-07d14m42.53s`
 - [ ] Caché por cache_key (RA+Dec redondeados + FOV + colecciones + versión pipeline)
@@ -128,22 +166,25 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - [ ] Banner de frescura de datos (ingesta semanal + desfase ~1 día).
 - [ ] Timeouts y reintentos con IRSA.
 
-## DÍA 5 — Modos de visualización
+## ETAPA 5 — Modos de visualización
 - [ ] Modo Diferencia (frame A − frame B, etiqueta "exploratorio, no confirma descubrimiento")
 - [ ] Modo Pila: suma de frames por época y por detector (mejora señal/ruido, lo que pide el enunciado)
 - [ ] Curva de luz (brillo vs. fecha del píxel central) — probar con RW Aurigae y R Draconis
 
-## DÍA 6 — Bandas + compartir + producción
-- [ ] Selector de banda espectral en el player (navegar por las bandas del cutout)
-- [ ] Modo "apilado por detector" (los 6 arrays sumados; solo pares simultáneos 1–4, 2–5, 3–6)
+## ETAPA 6 — Bandas + compartir + producción
+- [ ] Selector espectral basado en la longitud de onda real de cada medición; IMAGE no es un cubo.
+- [ ] Comparación por detector y apilado de mediciones espectralmente compatibles,
+  sin sumar indiscriminadamente los seis detectores; pares simultáneos 1–4, 2–5, 3–6.
+- [ ] **Overlay Gaia/WISE** (consideración #5): consulta de catálogo y marcadores
+  sobre el WCS común, o vista Aladin Lite para explorar.
 - [ ] **Coordenadas en la URL** (consideración #6): `/?ra=&dec=&fov=` carga directo el resultado
 - [ ] **Panel de FLAGS/calidad** por frame (consideración #7): flags aplicados, % de píxeles enmascarados
 - [ ] Repositorio GitHub público + README + licencia + sección "fuentes de datos" (puntúa en el registro)
 - [ ] Sección educativa mínima: ¿qué es el infrarrojo? ¿qué es una enana marrón? ¿por qué se mueve la estrella?
 - [ ] En README: decisiones de estabilidad (semáforo, límites por IP, caché) listas para uso público
 
-## DÍA 7 — Margen
-- [ ] Espectros al vuelo (solo si TODO lo demás está done; si no, se traslada a días 8–9)
+## ETAPA 7 — Margen
+- [ ] Espectros al vuelo (solo si TODO lo demás está done; si no, se traslada a etapas 8–9)
 - [ ] Pulido de UI, ensayo completo de la demo 3 veces
 - [ ] Prueba de carga casera: 10 pestañas abiertas + 2 coordenadas repetidas por donde validar caché
 - [ ] Lista de 10–15 casos de prueba (coordenadas variadas: vacía, parcial, profunda, polos)
@@ -151,7 +192,7 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 
 ---
 
-## DÍAS 8–9 — Hackathon con el equipo
+## ETAPAS 8–9 — Hackathon con el equipo
 
 - [ ] 2 personas: grabar y editar video de presentación (~1–2 min) — narrar la demo
 - [ ] 2 personas: QA fantasma — usar la web toda la noche con coordenadas al azar, reportar bugs (tú corriges)
@@ -161,9 +202,6 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 ## Bonus (si sobra tiempo, orden por impacto/esfuerzo)
 
 - [ ] Espectro al vuelo (apertura fotométrica vs. banda)
-- [ ] **Overlay Gaia/WISE** (consideración #5): cone-search de catálogo (VizieR/astroquery) +
-  dibujar marcadores sobre el canvas con el WCS ya reproyectado. O bien embebido Aladin Lite
-  en una vista "explorar" (consideración #8, widget de CDS listo para incrustar)
 - [ ] Descarga del FITS recortado original (enlace en el manifiesto)
 - [ ] Link-out a páginas externas (SIMBAD, NASA/WISE) por cada frame
 - [ ] Traducir UI a ES/EN
@@ -188,7 +226,7 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 
 ---
 
-## Coordenadas de referencia (verifica con SIMBAD el día 1)
+## Coordenadas de referencia (verifica con SIMBAD el etapa 1)
 
 - Barnard's Star: RA≈269.452, Dec≈+4.693 (verificado QR3 dentro de 0.3°)
 - WISE 0855: RA 08h55m10.831s = 133.795, Dec -07d14m42.53s = -7.245 (verificado QR2; QR3 sin datos)
@@ -196,18 +234,18 @@ Validación del 2026-11-05, ejecutada por el usuario y revisada en disco por el 
 - RW Aurigae: RA≈76.96, Dec≈+30.44 (verificar)
 - R Draconis: RA≈263.2, Dec≈+56.9 (verificar)
 
-## Avance de implementación — 2026-11-05
+## Historial de implementación — 2026-11-05 (superado por la validación de Etapa 1)
 
 - Preparado `test_data.py`: consulta las cuatro colecciones, ordena por MJD,
   descarga un recorte, inspecciona IMAGE y extensiones, valida el centro con WCS
   y exporta PNG más CSV e informe JSON de procedencia.
-- Dependencias mínimas del Día 1 en `requirements.txt`; instrucciones en README.
+- Dependencias mínimas del Etapa 1 en `requirements.txt`; instrucciones en README.
 - Pendiente de validación: en el entorno de ejecución del agente no se encontró
   Python ni los lanzadores py/uv, y la solicitud directa a IRSA desde PowerShell
   falló por conectividad. No se ha ejecutado el script ni generado el primer FITS/PNG.
-  Las casillas del Día 1 siguen pendientes hasta comprobarlo en un entorno con Python.
+  Las casillas del Etapa 1 siguen pendientes hasta comprobarlo en un entorno con Python.
 - Corrección de alcance: overlay Gaia/WISE (#5) es obligatorio para el objetivo
-  8/8 aunque figure arriba como bonus. Programarlo en el Día 6; Aladin es una opción.
+  8/8 aunque figure arriba como bonus. Programarlo en el Etapa 6; Aladin es una opción.
 - El límite de 100 KB por cutout es una hipótesis pendiente de medir; los MEF
   incluyen extensiones auxiliares. El script limita la descarga a 100 MiB por
   seguridad; ese límite no representa el tamaño esperado ni el límite de la web.
