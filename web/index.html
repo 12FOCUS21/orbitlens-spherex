@@ -1,10 +1,24 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-motion="off">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="OrbitLens: explorador temporal de observaciones infrarrojas de SPHEREx.">
   <title>OrbitLens · SPHEREx Time Atlas</title>
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const force = new URLSearchParams(location.search).get('motion');
+      if (/^(full|lite|off)$/.test(force)) root.dataset.motionForce = force;
+      const lite = matchMedia('(max-width: 760px)').matches ||
+        matchMedia('(hover: none) and (pointer: coarse)').matches ||
+        navigator.connection?.saveData ||
+        (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+        (navigator.deviceMemory && navigator.deviceMemory <= 4);
+      root.dataset.motion = matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'off' : root.dataset.motionForce || (lite ? 'lite' : 'full');
+    })();
+  </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230c3433'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='%23d9f56e' stroke-width='3'/%3E%3Ccircle cx='48' cy='19' r='5' fill='%23d9f56e'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23d9f56e'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -389,5 +403,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script type="module" src="/app.js"></script>
+<script type="module" src="/motion.js"></script>
 </body>
 </html>

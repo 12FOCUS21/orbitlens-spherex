@@ -201,3 +201,76 @@ test('diez pestañas abren Barnard desde caché sin errores', async ({ context }
     }))
   } finally { await Promise.all(pages.map(page => page.close())) }
 })
+
+const runningInfinite = () => document.getAnimations().filter(animation =>
+  animation.playState === 'running' && animation.effect?.getTiming().iterations === Infinity).length
+
+test('reduce elimina el movimiento y conserva ambas órbitas inclinadas incluso al cambiar en vivo', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off')
+  const snapshot = await page.evaluate(() => {
+    const angle = (selector: string) => {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(document.querySelector(selector)!).transform)
+      return Math.atan2(matrix.b, matrix.a) * 180 / Math.PI
+    }
+    return { outer: angle('.cosmos-orbit-outer'), inner: angle('.cosmos-orbit-inner'), running: document.getAnimations().filter(animation => animation.playState === 'running').length }
+  })
+  expect(snapshot.outer).toBeCloseTo(-24, 0)
+  expect(snapshot.inner).toBeCloseTo(55, 0)
+  expect(snapshot.running).toBe(0)
+  await page.locator('#blink').click()
+  await expect(page.locator('#blink')).toHaveAttribute('aria-pressed', 'true')
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off')
+  await expect(page.locator('#blink')).toHaveAttribute('aria-pressed', 'true')
+  expect(await page.evaluate(runningInfinite)).toBe(0)
+  await page.locator('#blink').click()
+})
+
+test('lite a 390 px respeta el presupuesto, elimina desenfoques y no desborda', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/?motion=lite&preset=barnard')
+  await ready(page)
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'lite')
+  expect(await page.evaluate(runningInfinite)).toBeLessThanOrEqual(4)
+  expect(await page.locator('.site-header').evaluate(node => getComputedStyle(node).backdropFilter)).toBe('none')
+  for (const viewport of [{ width: 360, height: 800 }, { width: 390, height: 844 },
+    { width: 414, height: 896 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport)
+    await fitsOnScreen(page)
+  }
+})
+
+test('full en escritorio no supera ocho animaciones infinitas', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full')
+  expect(await page.evaluate(runningInfinite)).toBeLessThanOrEqual(8)
+})
+
+test('la escena orbital se pausa al quedar fuera de pantalla', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await page.locator('#campos').scrollIntoViewIfNeeded()
+  await expect.poll(() => page.evaluate(() => document.querySelector('.hero')!.getAnimations({ subtree: true }).filter(animation =>
+    animation.playState === 'running' && animation.effect?.getTiming().iterations === Infinity).length)).toBe(0)
+  await expect(page.locator('.hero')).toHaveAttribute('data-motion-paused', '')
+})
+
+test('sin JavaScript el título y la escena permanecen visibles', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } })
+  try {
+    const page = await context.newPage()
+    await page.goto('/')
+    await expect(page.locator('#hero-title')).toBeVisible()
+    await expect(page.locator('.hero-cosmos')).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'off')
+    await fitsOnScreen(page)
+  } finally { await context.close() }
+})
