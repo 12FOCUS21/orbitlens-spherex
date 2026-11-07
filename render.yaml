@@ -3,14 +3,12 @@ services:
     name: orbitlens-spherex
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && npm --prefix frontend ci && npm --prefix frontend run build
+    buildCommand: pip install -r requirements.txt
     startCommand: python start_server.py
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
-      - key: NODE_VERSION
-        value: 22.16.0
       - key: ORBITLENS_REQUIRE_PRESETS
         value: "1"
       # Configurar en Render las IP/CIDR reales del proxy antes de desplegar.

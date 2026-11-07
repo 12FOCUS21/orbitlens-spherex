@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { fieldQuery, parseFieldLink } from '../src/fieldLinks.ts'
+import { fieldQuery, parseFieldLink } from '../../web/fieldLinks.js'
 
 test('una URL sin campo no lanza una búsqueda', () => {
   assert.equal(parseFieldLink(''), null)
@@ -21,7 +21,7 @@ test('compartir reproduce las coordenadas exactas del resultado, no vuelve a res
   const parameters = { ra: 269.44615615, dec: 4.76964363, fov: 4, frames: 2, detector: 'SPHEREx-D3' }
   const query = fieldQuery(parameters, 'barnard')
   const field = parseFieldLink(query)
-  assert.equal(field.label, 'Barnard’s Star')
+  assert.equal(field.label, "Barnard's Star")
   assert.equal(fieldQuery(parameters, field.preset), query)
   assert.deepEqual(field.body, { ra: String(parameters.ra), dec: String(parameters.dec), fov: 4, frames: 2, detector: 'SPHEREx-D3' })
   assert.equal('preset' in field.body, false)

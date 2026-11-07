@@ -1,10 +1,10 @@
 # OrbitLens — SPHEREx Time Atlas
 
-OrbitLens permite comparar observaciones infrarrojas de un mismo campo y revisar qué píxeles admiten una comparación. Incluye cinco campos de demostración de 12 imágenes, búsqueda por coordenadas, reproducción temporal, diferencia A−B, apilado y curva del píxel central.
+OrbitLens permite comparar observaciones infrarrojas de un mismo campo y revisar qué píxeles admiten una comparación. Incluye cinco campos de demostración de 12 imágenes, búsqueda por nombre o coordenadas, reproducción temporal, diferencia A−B, apilado y curva del píxel central.
 
 [Ver la demo pública](https://orbitlens-spherex.onrender.com) · [Pruebas y pasos de entrega](ENTREGA.md) · [Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
 
-La rama de desarrollo añade enlaces al campo, selección por longitud de onda, desglose de máscaras y acceso a los catálogos del mismo campo en Aladin Lite.
+La interfaz de trabajo en `web/` conserva la interacción visual vanilla y adapta las funciones del MVP: enlaces al campo, selección por longitud de onda, desglose de máscaras y catálogos del mismo campo en Aladin Lite.
 Los enlaces conservan las coordenadas y opciones exactas del resultado, sin volver
 a resolver el preset cuando ya incluyen RA/Dec. El selector cambia de medición,
 no genera bandas. Aladin abre una vista externa, no un overlay sobre SPHEREx.
@@ -12,14 +12,13 @@ Pruebas y revisión manual: [STAGE6_QA.md](STAGE6_QA.md).
 
 ## Estado
 
-**Verificación local actual (2026-11-06): 76 pruebas Python pasan**, con 3 avisos;
-TypeScript y Vite compilan. Se han añadido 20 pruebas de regresión de errores.
-El frontend incorpora además 10 pruebas de enlaces y orden espectral:
-`npm.cmd --prefix frontend test` (Node.js 22.12+, runner nativo de Node).
-También pasan 20 casos de navegador en Edge headless (escritorio y 390 px):
-`npm.cmd --prefix frontend run test:e2e`. Esta suite usa Playwright como dependencia
-de desarrollo y un servidor/caché temporales; recompila la app antes de ejecutarse.
-No consulta IRSA ni CDS. Configuración y límites en [STAGE7_QA.md](STAGE7_QA.md).
+**Verificación local de esta rama (2026-11-06): 77 pruebas Python pasan**, con
+avisos conocidos; `verify_demo.py` y `verify_release.py` comprueban los artefactos
+reales. Los módulos vanilla pasan `node --check`; 10 pruebas Node cubren enlaces y
+orden espectral (`npm.cmd --prefix frontend test`). La regresión actual de la web
+está en `npm.cmd --prefix frontend run test:web` (20/20 casos correctos en
+Playwright/Edge headless, escritorio y 390 px). `frontend/` conserva la versión React y su suite histórica,
+pero no participa en el despliegue ni en la interfaz actual.
 **MVP exploratorio aceptado funcionalmente:** el usuario confirmó las pruebas
 manuales operativas de cuotas/proxy, CDS y móvil. No se atribuyen a la suite E2E
 ni constituyen una auditoría independiente; detalle en DEPLOYMENT.md.
@@ -28,8 +27,8 @@ el build local y una muestra de PNG/FITS más los cinco GIF/target.json. No incl
 pruebas de cuota ni de CDS disponible por el agente; la aceptación manual posterior,
 la evidencia y el protocolo están en DEPLOYMENT.md.
 
-La Etapa 7 añade cuatro pruebas del smoke de entrega. Tras compilar el frontend,
-ejecuta `.\.venv\Scripts\python.exe verify_release.py`: verifica mediante HTTP local
+La Etapa 7 añade cuatro pruebas del smoke de entrega. Ejecuta
+`.\.venv\Scripts\python.exe verify_release.py`: verifica mediante HTTP local
 diez visitas concurrentes, el bundle y búsquedas repetidas sin consultar servicios
 externos ni modificar la caché original. Matriz de 15 casos y límites de esta
 comprobación en [STAGE7_QA.md](STAGE7_QA.md).
@@ -46,52 +45,49 @@ extensiones auxiliares. Falta verificar la identidad del objeto en la imagen y
 revisar su detectabilidad. La política de máscara por bits de la Etapa 2 está
 documentada en SCIENCE.md.
 
-**Etapa 3 completada y aceptada funcionalmente en localhost:** API FastAPI de trabajos
-con polling y web React + Vite + TypeScript. Incluye caché primero, cola,
+**Etapa 3 (registro histórico):** API FastAPI de trabajos con polling y frontend
+React + Vite + TypeScript. Incluye caché primero, cola,
 límites por IP, presets y reproductor canvas con avisos científicos. La terminal
 del usuario confirmó entonces 30 pruebas correctas (registro histórico), compilación TypeScript/Vite y arranque
 de Uvicorn. La página y las 12 imágenes de Barnard respondieron HTTP 200.
 El usuario confirmó manualmente el funcionamiento de los controles del reproductor.
 La herramienta de navegador del agente falló al leer la página; no se atribuye
 una verificación visual automatizada. La regresión ampliada y móvil sigue
-documentada en STAGE3_QA.md. El despliegue público se describe en DEPLOYMENT.md.
+documentada en STAGE3_QA.md. La versión actual usa `web/` servido por FastAPI;
+la publicación anterior se describe en DEPLOYMENT.md.
 
-## Etapa 3: ejecutar la web local
+## Ejecutar la interfaz de trabajo
 
-Necesitas Python con las dependencias del proyecto y Node.js 20.19+ o 22.12+
-(se recomienda una versión LTS compatible). Desde PowerShell, en la raíz:
+Necesitas Python con las dependencias del proyecto. Desde PowerShell, en la raíz:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-cd frontend
-npm.cmd install
-npm.cmd run build
-cd ..
 .\.venv\Scripts\python.exe start_server.py
 ```
 
-Abrir **http://127.0.0.1:8000**. FastAPI sirve la compilación de React y la API
-en el mismo origen. Las rutas interactivas de la API están en `/docs`.
+Abrir **http://127.0.0.1:8000**. FastAPI sirve `web/` y la API en el mismo
+origen; las rutas interactivas de la API están en `/docs`.
 No hace falta regenerar las cinco secuencias reales. Al arrancar se indexan
 los manifiestos del pipeline actual en `data/cache/` y se lee
 `data/cache/preset_verification.json`. Los ejemplos indican si están en caché;
 si falta el informe, se pueden recuperar desde el CLI con `--verify-presets`.
 El repositorio incluye los cinco ejemplos en `demo/cache`. El lanzador los copia al directorio de trabajo al arrancar.
 
-Para editar la web con recarga automática, deja el backend anterior abierto y
-usa otra terminal:
+Para comprobar la interfaz y los cálculos en navegador, instala las dependencias
+de desarrollo (no se requieren para servir `web/`):
 
 ```powershell
-cd frontend
-npm.cmd run dev
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend run test:web
+.\.venv\Scripts\python.exe verify_demo.py
+.\.venv\Scripts\python.exe verify_release.py
 ```
 
-Abrir la URL que indique Vite, normalmente http://127.0.0.1:5173. Su proxy
-reenvía `/api` al backend local; el navegador no consulta IRSA directamente.
-Después de modificar el frontend, repite `npm.cmd run build` para actualizar la
-versión servida en el puerto 8000. Reinicia Uvicorn tras la primera compilación
-si se arrancó sin `frontend/dist/`.
+La suite de Playwright inicia un servidor exclusivo con una copia temporal de
+`demo/cache`, sin consultas a IRSA o SIMBAD. La vista de Aladin requiere conexión
+CDS para mostrar Gaia DR3 y AllWISE; es externa al píxel SPHEREx.
 
 El formulario acepta un nombre SIMBAD, coordenadas decimales en grados o
 sexagesimales como `08h55m10.831s` / `-07d14m42.53s` y
@@ -116,9 +112,14 @@ detector compartido no implica banda idéntica; `ready` no significa detección.
 - `GET /api/status/{job_id}`: polling barato; estados `queued`, `resolving`,
   `searching`, `ready`, `partial`, `empty`, `error`.
 - `GET /api/presets` y `GET /api/health`: disponibilidad local de los ejemplos.
+  Cada preset incluye nombre, objetivo, recuento y miniatura si está cacheado.
 - `GET /api/results/{result_id}/manifest`: manifiesto con URLs web para los
   frames y FITS. Solo se sirven artefactos registrados y validados, por índice;
   no se publica `data/raw/` ni el directorio completo de caché.
+- `POST /api/results/{result_id}/analysis`: diferencia, apilado de época corta o
+  curva del píxel central; el análisis usa los FITS alineados de la secuencia.
+- `/catalogos.html?ra=&dec=&fov=`: vista externa del mismo centro con Gaia DR3 y
+  AllWISE en Aladin Lite, con enlace de respaldo si CDS no está disponible.
 
 Hay como máximo **3 trabajos pesados simultáneos**, ejecutados en threads fuera
 del event loop, y hasta 32 trabajos activos contando la cola. Búsquedas iguales
@@ -138,10 +139,10 @@ Tras un proxy de despliegue, configura Uvicorn para confiar cabeceras de IP
 únicamente desde ese proxy; consulta DEPLOYMENT.md para la aceptación manual y el
 protocolo que debe repetirse si cambia el despliegue.
 
-Revisión manual y estado de verificación: [STAGE3_QA.md](STAGE3_QA.md).
+Regresión de la interfaz actual: [STAGE7_QA.md](STAGE7_QA.md).
 Referencias de implementación: [ciclo de vida FastAPI](https://fastapi.tiangolo.com/advanced/events/),
-[concurrencia FastAPI](https://fastapi.tiangolo.com/async/),
-[proxy de Vite](https://vite.dev/config/server-options).
+[concurrencia FastAPI](https://fastapi.tiangolo.com/async/) y
+[archivos estáticos](https://fastapi.tiangolo.com/tutorial/static-files/).
 
 ## Documentación del proyecto
 
@@ -160,16 +161,12 @@ contrastarse con el plan vigente.
 
 ## Pendientes de preparación y entrega
 
-- Confirmar las reglas del evento local sobre trabajo previo y declarar con
-  transparencia la planificación y el desarrollo realizados antes del hackathon.
-  Este repositorio contiene planificación; el código original y la demo final
-  deben realizarse de acuerdo con las reglas vigentes.
-- Concretar el despliegue público y la visibilidad del repositorio. Para una
-  propuesta Space Apps, la recomendación es un repositorio público bajo licencia
-  MIT una vez confirmado el cumplimiento de las condiciones 2026.
-- Elegir las regiones de la demo a partir de la prueba de acceso a IRSA y
-  validar los objetos de demostración; mantener siempre un paquete reducido de
-  respaldo con atribución clara.
+- Publicar la interfaz vanilla de esta rama y comprobar la versión pública en
+  ventana privada, además de las rutas de presets y catálogos.
+- Validar con personas del equipo la identidad visual de fuentes, artefactos,
+  máscaras y bandas antes de interpretar desplazamientos o variaciones.
+- Completar tres ensayos de demo, vídeo y submission oficial con el equipo;
+  comprobar las reglas vigentes del evento y la visibilidad del repositorio.
 
 ## Etapa 1: prueba de datos
 

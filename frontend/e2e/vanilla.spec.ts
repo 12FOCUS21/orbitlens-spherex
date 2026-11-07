@@ -1,0 +1,203 @@
+import { test as base, expect, type Page } from '@playwright/test'
+
+const test = base.extend<{ browserErrors: string[] }>({
+  browserErrors: [async ({ context }, use) => {
+    const errors: string[] = []
+    context.on('page', page => page.on('pageerror', error => errors.push(error.message)))
+    // Ninguna fuente remota se consulta durante esta regresión.
+    await context.route('**/*', route => new URL(route.request().url()).hostname === '127.0.0.1'
+      ? route.continue() : route.abort())
+    await use(errors)
+    expect(errors, 'Excepciones JavaScript no controladas').toEqual([])
+  }, { auto: true }],
+})
+
+async function ready(page: Page, timeout = 10_000) {
+  await expect(page.locator('#viewer-empty')).toBeHidden({ timeout })
+  await expect(page.locator('#field-status')).toHaveText('Secuencia lista')
+  await expect(page.locator('#timeline')).toBeEnabled()
+}
+
+async function fitsOnScreen(page: Page) {
+  const size = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }))
+  expect(size.scroll, 'Sin desbordamiento horizontal').toBeLessThanOrEqual(size.width + 1)
+}
+
+async function preset(page: Page, id: string) {
+  await page.locator(`[data-preset="${id}"]`).click()
+  await ready(page)
+}
+
+async function calculate(page: Page) {
+  const response = page.waitForResponse(response => response.url().endsWith('/analysis') && response.request().method() === 'POST')
+  await page.locator('#analysis-run').click()
+  const result = await response
+  expect(result.status()).toBe(200)
+  await expect(page.locator('#analysis-status')).toHaveText('Análisis completado.')
+  return result.json()
+}
+
+test('carga los cinco presets, el visor y sus miniaturas', async ({ page }) => {
+  await page.goto('/')
+  await ready(page)
+  await expect(page.locator('[data-preset]')).toHaveCount(5)
+  await expect(page.locator('#timeline')).toHaveAttribute('max', '11')
+  await expect(page.locator('#quality-bits .bit-row')).not.toHaveCount(0)
+  await expect(page.locator('#catalog-link')).toHaveAttribute('href', /catalogos\.html\?ra=/)
+  const thumbnailWidth = await page.locator('.field-thumb').first().evaluate(node => node.getBoundingClientRect().width)
+  expect(thumbnailWidth).toBeGreaterThan(150)
+  for (const id of ['epsilon-indi-b', 'wise0855', 'rw-aur', 'r-dra']) {
+    await preset(page, id)
+    await expect(page.locator('#timeline')).toHaveAttribute('max', '11')
+    await fitsOnScreen(page)
+  }
+})
+
+test('el enlace compartido conserva centro, opciones y etiqueta', async ({ page, context }) => {
+  await page.goto('/?preset=wise0855')
+  await ready(page)
+  const link = page.url()
+  const params = new URL(link).searchParams
+  expect(params.get('preset')).toBe('wise0855')
+  expect(params.get('ra')).not.toBeNull()
+  expect(params.get('dec')).not.toBeNull()
+  const copy = await context.newPage()
+  try {
+    await copy.goto(link)
+    await ready(copy)
+    expect(copy.url()).toBe(link)
+    await expect(copy.locator('#ra')).toHaveValue(params.get('ra')!)
+    await expect(copy.locator('#dec')).toHaveValue(params.get('dec')!)
+    await expect(copy.locator('#fov')).toHaveValue(params.get('fov')!)
+    await expect(copy.locator('#frame-count')).toHaveValue(params.get('frames')!)
+    await expect(copy.locator('#field-title')).toHaveText('WISE 0855')
+    await fitsOnScreen(copy)
+  } finally { await copy.close() }
+})
+
+test('el formulario consulta coordenadas cacheadas y conserva opciones', async ({ page }) => {
+  await page.goto('/?preset=barnard')
+  await ready(page)
+  const parameters = new URL(page.url()).searchParams
+  await page.locator('#mode-coords').click()
+  await page.locator('#ra').fill(parameters.get('ra')!)
+  await page.locator('#dec').fill(parameters.get('dec')!)
+  await page.locator('#frame-count').fill('12')
+  await page.locator('#fov').fill('5')
+  await page.locator('#search').click()
+  await ready(page)
+  await expect(page.locator('#field-title')).toContainText('Coordenadas')
+  expect(new URL(page.url()).searchParams.get('preset')).toBeNull()
+  await fitsOnScreen(page)
+})
+
+test('selector espectral detiene reproducción y la calidad distingue máscaras', async ({ page }) => {
+  await page.goto('/?preset=barnard')
+  await ready(page)
+  await page.locator('#play').click()
+  await expect(page.locator('#play')).toHaveText('Pausar')
+  await page.locator('#measurement-select').selectOption('6')
+  await expect(page.locator('#timeline')).toHaveValue('6')
+  await expect(page.locator('#play')).toHaveText('Reproducir')
+  await expect(page.locator('#quality-summary')).toContainText('rejilla alineada')
+  await expect(page.locator('#quality-summary')).toContainText('recorte original')
+  await expect(page.locator('#quality-bits')).toContainText('SOURCE')
+  await expect(page.locator('#quality-bits')).toContainText('informativo')
+  await fitsOnScreen(page)
+})
+
+test('diferencia A−B invierte colores al intercambiar observaciones', async ({ page }) => {
+  await page.goto('/?preset=barnard')
+  await ready(page)
+  const first = await calculate(page)
+  await expect(page.locator('#analysis-result img')).toBeVisible()
+  await page.locator('#analysis-swap').click()
+  const second = await calculate(page)
+  expect(second.indices).toEqual([...first.indices].reverse())
+  const inverse = await page.evaluate(async ([a, b]) => {
+    async function pixels(url: string) {
+      const image = new Image(); image.src = url; await image.decode()
+      const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height
+      const context = canvas.getContext('2d')!
+      context.drawImage(image, 0, 0)
+      return context.getImageData(0, 0, image.width, image.height).data
+    }
+    const [x, y] = await Promise.all([pixels(a), pixels(b)])
+    return x.length === y.length && x.every((value, index) => value === y[index % 4 === 0 ? index + 2 : index % 4 === 2 ? index - 2 : index])
+  }, [first.image, second.image])
+  expect(inverse).toBe(true)
+  await fitsOnScreen(page)
+})
+
+test('apilado y curvas conservan puntos válidos y ausentes', async ({ page }) => {
+  await page.goto('/?preset=rw-aur')
+  await ready(page)
+  await page.locator('#analysis-mode').selectOption('stack')
+  const stack = await calculate(page)
+  expect(stack.contributors_min).toBe(2)
+  expect(stack.contributors_max).toBe(2)
+  await expect(page.locator('#analysis-result img')).toBeVisible()
+  for (const [id, count] of [['wise0855', 12], ['epsilon-indi-b', 10], ['barnard', 0]] as const) {
+    await preset(page, id)
+    await page.locator('#analysis-mode').selectOption('lightcurve')
+    const curve = await calculate(page)
+    expect(curve.points.filter((point: { value: number | null }) => point.value !== null)).toHaveLength(count)
+    await expect(page.locator('#analysis-result tbody tr')).toHaveCount(12)
+    await fitsOnScreen(page)
+  }
+})
+
+test('enlaces inválidos no inician búsquedas', async ({ page }) => {
+  const posts: string[] = []
+  page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith('/api/search')) posts.push(request.url()) })
+  for (const query of ['?ra=10', '?preset=unknown', '?ra=0&dec=0&frames=17', '?preset=barnard&ra=0&ra=1&dec=0']) {
+    await page.goto('/' + query)
+    await expect(page.locator('#field-status')).toHaveText('Error de secuencia')
+    await expect(page.locator('#query-status')).not.toBeEmpty()
+    await fitsOnScreen(page)
+  }
+  expect(posts).toEqual([])
+})
+
+test('Aladin sin CDS conserva mensaje y enlace alternativo', async ({ page }) => {
+  await page.goto('/catalogos.html?ra=133.75862792&dec=-7.24208853&fov=5')
+  await expect(page.getByRole('status')).toContainText('Mapa externo no disponible')
+  await expect(page.locator('#external')).toBeVisible()
+  expect(new URL((await page.locator('#external').getAttribute('href'))!).searchParams.get('target')).toBe('133.75862792 -7.24208853')
+  await fitsOnScreen(page)
+})
+
+test('partial y secuencias de dos frames no habilitan animación', async ({ page }) => {
+  const response = await page.request.post('/api/search', { data: { preset: 'barnard' } })
+  const job = await response.json()
+  const source = await (await page.request.get(job.manifest_url)).json()
+  let status = 'partial', requested = 12
+  await page.route('**/api/search', route => {
+    expect(route.request().postDataJSON().frames).toBe(requested)
+    return route.fulfill({ status: 202, json: { ...job, status } })
+  })
+  await page.route('**/api/results/*/manifest', route => route.fulfill({ json: {
+    ...source, status, frames: source.frames.slice(0, 2), parameters: { ...source.parameters, frames: requested },
+  } }))
+  for (const value of ['partial', 'ready']) {
+    status = value; requested = status === 'partial' ? 12 : 2
+    await page.goto(`/?preset=barnard&frames=${requested}`)
+    await expect(page.locator('#field-status')).toHaveText(status === 'partial' ? 'Secuencia parcial' : 'Secuencia lista')
+    await expect(page.locator('#timeline')).toBeEnabled()
+    await expect(page.locator('#timeline')).toHaveAttribute('max', '1')
+    await expect(page.locator('#play')).toBeDisabled()
+    await fitsOnScreen(page)
+  }
+})
+
+test('diez pestañas abren Barnard desde caché sin errores', async ({ context }) => {
+  test.setTimeout(90_000)
+  const pages = await Promise.all(Array.from({ length: 10 }, () => context.newPage()))
+  try {
+    await Promise.all(pages.map(async page => {
+      await page.goto('/?preset=barnard')
+      await ready(page, 45_000)
+      await expect(page.locator('#analysis-selection input')).toHaveCount(12)
+    }))
+  } finally { await Promise.all(pages.map(page => page.close())) }
+})

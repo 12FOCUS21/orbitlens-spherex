@@ -38,8 +38,8 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "informe del bundle"):
             verify_release(self.root / "absent", self.frontend)
 
-    def test_missing_build_fails_with_actionable_message(self):
-        with self.assertRaisesRegex(ValueError, "run build"):
+    def test_missing_frontend_fails_with_actionable_message(self):
+        with self.assertRaisesRegex(ValueError, "web/index.html"):
             verify_release(self.bundle, self.root / "absent")
 
     def test_missing_auxiliary_artifact_cannot_pass_smoke(self):

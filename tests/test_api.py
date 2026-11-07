@@ -88,6 +88,14 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(client.get("/api/unknown").status_code, 404)
             self.assertEqual(client.get("/").status_code, 503)
 
+    def test_default_frontend_serves_vanilla_web(self):
+        app = create_app(cache_root=self.cache, raw_root=self.raw)
+        with TestClient(app) as client:
+            index = client.get("/")
+            self.assertEqual(index.status_code, 200)
+            self.assertIn('type="module" src="/app.js"', index.text)
+            self.assertEqual(client.get("/app.js").status_code, 200)
+
     def test_cache_first_and_only_registered_assets_are_public(self):
         path = fixture(self.cache)
         def forbidden(*args, **kwargs):
@@ -114,7 +122,10 @@ class ApiTests(unittest.TestCase):
         ]}), encoding="utf-8")
         with TestClient(self.app()) as client:
             self.assertEqual(client.get("/api/health").json()["cached_presets"], 1)
-            self.assertTrue(client.get("/api/presets").json()[0]["cached"])
+            listed = client.get("/api/presets").json()[0]
+            self.assertTrue(listed["cached"])
+            self.assertEqual(listed["target"], target)
+            self.assertEqual(listed["preview_url"], f"/api/results/{path.parent.name}/frames/0.png")
             self.assertEqual(client.post("/api/search", json={"preset": "barnard"}).json()["status"], "ready")
 
     def test_post_returns_before_compute_and_polling_remains_responsive(self):

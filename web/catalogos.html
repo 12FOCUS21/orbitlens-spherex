@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Catálogos Gaia DR3 y AllWISE para el campo ICRS abierto en OrbitLens.">
+<title>Catálogos del campo · OrbitLens</title>
+<style>
+  body{margin:0;background:#0c3433;color:#fcf9ef;font:16px/1.55 "Segoe UI",system-ui,sans-serif}
+  main{max-width:1000px;margin:auto;padding:clamp(16px,4vw,42px)}
+  h1{font:500 clamp(2rem,5vw,3.3rem)/1.08 Georgia,serif}
+  #atlas{width:100%;height:min(65vh,700px);min-height:350px;border:1px solid #638477;border-radius:12px;overflow:hidden}
+  a{color:#d9f56e;text-underline-offset:3px}
+  .note{color:#c8dbd2;max-width:70ch}
+  .links{display:flex;gap:12px;flex-wrap:wrap}
+</style>
+<main>
+  <h1>Catálogos del mismo campo</h1>
+  <p id="info" role="status">Cargando el mapa de Aladin Lite…</p>
+  <div id="atlas"></div>
+  <p class="note">Gaia DR3 aparece en cian y AllWISE en naranja. Las posiciones pueden corresponder a épocas distintas de SPHEREx. Esta es una vista externa del mismo centro, no una superposición sobre los píxeles ni una identificación de fuentes.</p>
+  <p class="links"><a id="external" hidden target="_blank" rel="noopener">Consultar este campo directamente en Aladin ↗</a><a href="/">Volver a OrbitLens</a></p>
+</main>
+<script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js"></script>
+<script>
+  async function start(){
+    const q=new URLSearchParams(location.search);
+    if(!['ra','dec','fov'].every(k=>q.has(k)&&q.get(k).trim())) throw Error('Faltan coordenadas o campo de visión.');
+    const [ra,dec,fov]=['ra','dec','fov'].map(k=>Number(q.get(k)));
+    if(!(ra>=0&&ra<360&&dec>=-90&&dec<=90&&fov>=1&&fov<=30)) throw Error('Campo fuera de rango.');
+    const external=document.querySelector('#external');
+    external.href='https://aladin.cds.unistra.fr/AladinLite/?'+new URLSearchParams({target:ra+' '+dec,fov:String(fov/60)});
+    external.hidden=false;
+    await A.init;
+    const center=ra+' '+dec;
+    const field=A.aladin('#atlas',{target:center,fov:fov/60,cooFrame:'ICRSd',survey:'P/DSS2/color'});
+    for(const [id,name,color] of [['I/355/gaiadr3','Gaia DR3','#6df0fa'],['II/328/allwise','AllWISE','#ffa45c']]){
+      field.addCatalog(A.catalogFromVizieR(id,center,fov/60/Math.sqrt(2),{name,color,sourceSize:6,onClick:'showTable'}));
+    }
+    document.querySelector('#info').textContent='Centro ICRS '+center+' grados · campo '+fov+'′. Las capas se consultan en CDS.';
+  }
+  start().catch(e=>document.querySelector('#info').textContent='Mapa externo no disponible. '+e.message);
+</script>
+</html>

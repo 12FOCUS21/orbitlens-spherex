@@ -1,11 +1,17 @@
 # Etapa 4 — Render
 
-Un servicio Python sirve la API y la compilación React. La configuración está en
-`render.yaml`. Despliegue público confirmado funcionando por el usuario:
+Un servicio Python sirve la API y la interfaz vanilla de `web/` desde el mismo
+origen. La configuración está en `render.yaml`; ya no requiere Node ni compilar
+el frontend. Despliegue público existente:
 https://orbitlens-spherex.onrender.com
 
-**Validación local actual (2026-11-06): 76 pruebas Python pasan, con 3 avisos;
-TypeScript/Vite compilan.** Bundle completo: cinco manifiestos, 60 PNG, 60 FITS,
+La comprobación pública de lectura y la aceptación manual descritas a continuación
+corresponden al despliegue React anterior; la interfaz vanilla de esta rama se
+ha validado localmente y requiere redeploy y nueva comprobación pública.
+
+**Validación local de la rama (2026-11-06): 77 pruebas Python pasan, con avisos
+conocidos; los módulos vanilla pasan `node --check` y los 20 casos Edge pasan.**
+Bundle completo: cinco manifiestos, 60 PNG, 60 FITS,
 cinco GIF, cinco target.json y el informe portable. La comprobación pública de
 lectura del 2026-11-06 confirmó los recursos indicados a continuación; no acredita
 el despliegue de archivos de pruebas que no se sirven por HTTP.
@@ -69,9 +75,9 @@ Con los cinco presets verificados de la Etapa 2:
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-Revisa e incluye `demo/cache` en tu publicación junto con el código y
-`frontend/package-lock.json`. Contiene manifiestos, PNG, FITS alineados,
-GIF y target.json para los cinco presets; no incluye los recortes originales.
+Revisa e incluye `demo/cache` en tu publicación junto con el código. Contiene
+manifiestos, PNG, FITS alineados, GIF y target.json para los cinco presets; no
+incluye los recortes originales.
 La excepción de `.gitignore` permite incluir esos FITS. Conserva su atribución
 NASA/JPL-Caltech e IRSA y las advertencias científicas de los manifiestos.
 El preparador es repetible: completa archivos ausentes y acepta archivos idénticos.
@@ -196,11 +202,15 @@ prueba. Registrar fecha UTC, versión y resultados sin incluir credenciales.
 | CDS disponible y uso en móvil físico | Aceptación manual del usuario |
 | IP/CIDR concretas y acceso directo al puerto | Sin inspección independiente ni valores registrados; responsabilidad del operador |
 
-Ejecuta las pruebas tras estos cambios y recompila el frontend:
+Ejecuta las pruebas y la regresión de la interfaz:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
-npm.cmd --prefix frontend run build
+.\.venv\Scripts\python.exe verify_demo.py
+.\.venv\Scripts\python.exe verify_release.py
+npm.cmd --prefix frontend ci
+npm.cmd --prefix frontend test
+npm.cmd --prefix frontend run test:web
 ```
 
 Los PNG/FITS científicos existentes se conservan. El bundle de este repositorio
