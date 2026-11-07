@@ -33,26 +33,38 @@ Comprueba:
 Render ni verifica separación de IP tras su proxy. La lectura científica de los
 FITS se verifica por separado con `verify_demo.py`. Aladin requiere QA con red.
 
-## Regresión funcional en navegador — 2026-11-06
+## Regresión funcional en navegador — 2026-11-07
 
 La versión de trabajo tiene su propia suite en `frontend/e2e/vanilla.spec.ts`:
 `npm.cmd --prefix frontend run test:web`. Sirve `web/` desde un servidor E2E
 exclusivo con copia temporal del bundle y comprueba los cinco presets, enlaces,
 formulario, selector espectral, FLAGS, diferencia/inversión de signo, apilado,
 curvas con valores ausentes, errores de URL, Aladin sin CDS, dos frames y diez
-pestañas simultáneas, en escritorio y 390 px: **20/20 casos correctos**. No ejecuta
-búsquedas nuevas en IRSA ni valida catálogos disponibles en CDS.
+pestañas simultáneas, en escritorio y 390 px: **34/34 casos correctos**.
+
+Los catorce casos añadidos cubren el sistema de movimiento: `reduce` deja la
+página sin animaciones y conserva las órbitas a −24° y 55° incluso al cambiar en
+vivo; `lite` respeta el presupuesto de cuatro animaciones infinitas, elimina
+`backdrop-filter` y no desborda a 360, 390, 414 y 844 px; `full` no supera ocho
+animaciones infinitas; la escena se pausa fuera de pantalla; sin JavaScript la
+portada sigue visible y estática; la profundidad y el parallax solo se activan en
+`full` con puntero fino; y los controles del visor usan movimiento finito que se
+apaga en `off`. No ejecuta búsquedas nuevas en IRSA ni valida catálogos
+disponibles en CDS. Las capturas finales (portada de escritorio, visor con
+comparación, portada móvil en `lite` y estado con movimiento reducido) están en
+`docs/capturas/`.
 
 La evidencia siguiente corresponde a la suite histórica de la interfaz React,
 conservada en `frontend/e2e/viewer.spec.ts` y ejecutable por separado con
 `npm.cmd --prefix frontend run test:e2e`.
 
-**20 casos correctos en Edge 156.0.4314.58 headless en Windows**: diez pruebas
-en escritorio (1365×900) y las mismas diez a 390×844 con emulación móvil.
-No se detectaron excepciones JavaScript no controladas ni desbordamiento horizontal
-del documento en los estados comprobados. No es una prueba en un móvil físico.
+**En la suite histórica, 20 casos correctos en Edge 156.0.4314.58 headless en
+Windows**: diez pruebas en escritorio (1365×900) y las mismas diez a 390×844 con
+emulación móvil. No se detectaron excepciones JavaScript no controladas ni
+desbordamiento horizontal del documento en los estados comprobados. No es una
+prueba en un móvil físico.
 
-La suite está en `frontend/e2e/viewer.spec.ts` y usa Playwright como dependencia
+La suite histórica está en `frontend/e2e/viewer.spec.ts` y usa Playwright como dependencia
 de desarrollo. `npm.cmd --prefix frontend run test:e2e` recompila primero la app
 mediante el hook `pretest:e2e`, arranca un Uvicorn exclusivo en `127.0.0.1:8765`,
 y comprueba:

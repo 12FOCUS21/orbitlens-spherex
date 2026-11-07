@@ -9,8 +9,10 @@ La comprobación pública de lectura y la aceptación manual descritas a continu
 corresponden al despliegue React anterior; la interfaz vanilla de esta rama se
 ha validado localmente y requiere redeploy y nueva comprobación pública.
 
-**Validación local de la rama (2026-11-06): 77 pruebas Python pasan, con avisos
-conocidos; los módulos vanilla pasan `node --check` y los 20 casos Edge pasan.**
+**Validación local de la rama (2026-11-07): 77 pruebas Python y 44 subtests pasan,
+con avisos conocidos; los módulos vanilla pasan `node --check`, los 34 casos Edge
+pasan y el sistema de movimiento `full/lite/off` se verificó con CPU 4× (p95
+≈16,8–16,9 ms, sin tareas largas, CLS <0,005).**
 Bundle completo: cinco manifiestos, 60 PNG, 60 FITS,
 cinco GIF, cinco target.json y el informe portable. La comprobación pública de
 lectura del 2026-11-06 confirmó los recursos indicados a continuación; no acredita

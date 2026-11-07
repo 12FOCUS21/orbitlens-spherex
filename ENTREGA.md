@@ -32,14 +32,23 @@ conserva en [STAGE6_QA.md](STAGE6_QA.md).
 El smoke de `verify_release.py` cubre HTTP concurrente local y caché, sin ejecutar
 un navegador. La matriz de 15 casos y los tres ensayos pendientes están en
 [STAGE7_QA.md](STAGE7_QA.md).
-Posteriormente se ejecutaron 20 casos E2E con Playwright y Edge headless en
+La suite vanilla actual ejecuta 34 casos E2E con Playwright y Edge headless en
 escritorio y viewport móvil de 390 px, incluidos diez tabs reales simultáneos,
-los tres análisis y el fallo de CDS. La suite se repite con
-`npm.cmd --prefix frontend run test:e2e` para la versión React histórica y con
-`npm.cmd --prefix frontend run test:web` para la interfaz vanilla de trabajo
-(20/20 casos). Ambas usan caché temporal y cuota elevada solo para pruebas. No
-verifican la carga correcta de catálogos externos, un móvil físico ni el proxy
-de producción. Los tres ensayos de presentación siguen pendientes.
+los tres análisis, el fallo de CDS y el sistema de movimiento (**34/34**). La
+suite histórica React se conserva con `npm.cmd --prefix frontend run test:e2e`
+(20 casos) y la de trabajo con `npm.cmd --prefix frontend run test:web`. Ambas
+usan caché temporal y cuota elevada solo para pruebas. No verifican la carga
+correcta de catálogos externos, un móvil físico ni el proxy de producción. Los
+tres ensayos de presentación siguen pendientes.
+
+**Movimiento y accesibilidad.** La interfaz fija `data-motion="full|lite|off"`
+antes del primer pintado. Con `prefers-reduced-motion: reduce` no corre ninguna
+animación y las órbitas quedan en −24° y 55°; `lite` elimina desenfoques y limita
+la escena; `full` mantiene seis animaciones infinitas (límite ocho). La escena se
+pausa fuera de pantalla o con la pestaña oculta, y `?motion=full|lite|off`
+permite demostrar cada nivel. Con CPU 4× el p95 ronda 16,8–16,9 ms sin tareas
+largas y CLS <0,005; el parallax solo se activa en `full` con puntero fino. Las
+capturas finales están en `docs/capturas/`.
 Una comprobación directa de lectura pública el 2026-11-06 confirmó salud y cinco
 presets en 200, frontend JS/CSS idéntico al build local y acceso al primer/último
 PNG/FITS de cada secuencia, cinco GIF y cinco target.json. No se hicieron POST ni
