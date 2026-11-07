@@ -310,3 +310,32 @@ test('la profundidad y el parallax solo se activan en full con puntero preciso',
   await expect(page.locator('.cosmos-stars-depth')).toBeHidden()
   expect(await page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).toBe('')
 })
+
+test('los controles del visor responden con movimiento finito y se apagan en off', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await page.locator('#compare').click()
+  const chip = page.locator('#epoch-b')
+  await expect(chip).toHaveAttribute('aria-pressed', 'true')
+  expect(await chip.evaluate(node => node.getAnimations().some(animation =>
+    animation.effect?.getTiming().iterations === 1))).toBe(true)
+  await expect.poll(() => chip.evaluate(node => node.getAnimations().length)).toBe(0)
+  const play = page.locator('#play')
+  await play.hover()
+  const fine = await page.evaluate(() => matchMedia('(hover: hover) and (pointer: fine)').matches)
+  if (fine) {
+    await expect.poll(() => play.evaluate(node =>
+      Math.round(new DOMMatrixReadOnly(getComputedStyle(node).transform).f))).toBe(-1)
+  } else expect(await play.evaluate(node => getComputedStyle(node).transform)).toBe('none')
+  await page.mouse.move(0, 0)
+  await page.goto('/?motion=off&preset=barnard')
+  await ready(page)
+  await page.locator('#play').hover()
+  const still = await page.locator('#play').evaluate(node => ({
+    transform: getComputedStyle(node).transform,
+    animations: node.getAnimations().length,
+  }))
+  expect(still.transform).toBe('none')
+  expect(still.animations).toBe(0)
+})

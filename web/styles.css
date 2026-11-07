@@ -100,7 +100,8 @@ button, .button-link {
   line-height: 1.1;
   text-decoration: none;
   cursor: pointer;
-  transition: transform .18s var(--ease);
+  transition: transform .18s var(--ease), border-color .18s var(--ease),
+    background-color .18s var(--ease), color .18s var(--ease);
 }
 
 button:hover, .button-link:hover {
@@ -231,7 +232,10 @@ button[aria-pressed="true"]:not(.epoch-chip):not(.field-card) {
   font-size: .86rem;
   font-weight: 650;
   text-decoration: none;
+  transition: color .18s var(--ease);
 }
+
+.site-nav a:hover { color: var(--ink); }
 
 .site-nav a::after {
   content: "";
@@ -705,6 +709,7 @@ main {
   cursor: grab;
   touch-action: none;
   user-select: none;
+  transition: border-color .25s var(--ease);
 }
 
 .viewer.dragging { cursor: grabbing; }
@@ -965,6 +970,8 @@ input[type="range"]::-moz-range-thumb {
   color: #cfe0d6;
   font: 600 .72rem/1.2 var(--font-mono);
   text-align: left;
+  transition: transform .18s var(--ease), border-color .18s var(--ease),
+    background-color .18s var(--ease), color .18s var(--ease);
 }
 
 .epoch-chip b {
@@ -1306,7 +1313,8 @@ details summary {
   color: var(--ink);
   text-align: left;
   cursor: pointer;
-  transition: transform .2s var(--ease);
+  transition: transform .2s var(--ease), border-color .2s var(--ease),
+    background-color .2s var(--ease);
 }
 
 .field-card:hover {
@@ -1338,6 +1346,7 @@ details summary {
   object-fit: contain;
   image-rendering: pixelated;
   opacity: .94;
+  transition: transform .35s var(--ease);
 }
 
 .field-thumb.empty {
@@ -1496,6 +1505,8 @@ details summary {
   color: var(--ink-2);
   font: .72rem/1.45 var(--font-mono);
   cursor: pointer;
+  transition: transform .18s var(--ease), border-color .18s var(--ease),
+    background-color .18s var(--ease);
 }
 
 .analysis-selection label:hover { border-color: var(--line-strong); }
@@ -2150,6 +2161,19 @@ kbd {
   from { transform: rotate(-360deg); }
   to { transform: rotate(0deg); }
 }
+@keyframes epoch-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes chip-settle {
+  0% { transform: scale(.97); }
+  62% { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+@keyframes check-settle {
+  from { transform: scale(.99); }
+  to { transform: scale(1); }
+}
 
 html[data-motion="full"] .cosmos-stars-far { animation: cosmos-intro-stars .55s ease-out backwards; }
 html[data-motion="full"] .cosmos-stars-near {
@@ -2175,6 +2199,10 @@ html[data-motion="full"] .cosmos-star {
 }
 html[data-motion="full"] .cosmos-label { animation: cosmos-intro-label .3s ease-out .78s backwards; }
 html[data-motion="full"] .brand-mark { animation: cosmos-brand-turn 1s var(--ease) backwards; }
+html[data-motion="full"] .epoch-chip[aria-pressed="true"] { animation: chip-settle .32s var(--ease); }
+html[data-motion="full"] .epoch-card:not(:empty) { animation: epoch-in .32s var(--ease) both; }
+html[data-motion="full"] .analysis-result:not(:empty) { animation: epoch-in .32s var(--ease) both; }
+html[data-motion="full"] .analysis-selection label:has(input:checked) { animation: check-settle .25s var(--ease); }
 html[data-motion="full"] .progress-bar span { animation: progress-slide 1.6s var(--ease) infinite; }
 html[data-motion="lite"] .cosmos-core { animation: cosmos-float 7s ease-in-out infinite alternate; }
 html[data-motion="full"] .cosmos-track,
@@ -2188,6 +2216,17 @@ html[data-motion="lite"] .connection[data-state="busy"] .dot { animation: pulse 
 @media (hover: hover) and (pointer: fine) {
   html[data-motion="full"] .brand:hover .brand-mark,
   html[data-motion="full"] .brand:focus-visible .brand-mark { transform: rotate(-13deg) scale(1.05); }
+  html:not([data-motion="off"]) button:not(:disabled):not(.field-card):not(.epoch-chip):hover,
+  html:not([data-motion="off"]) .button-link:not(.is-disabled):hover { transform: translateY(-1px); }
+  html:not([data-motion="off"]) button:not(:disabled):not(.field-card):not(.epoch-chip):active,
+  html:not([data-motion="off"]) .button-link:not(.is-disabled):active { transform: translateY(1px) scale(.99); }
+  html:not([data-motion="off"]) .unit-toggle button:hover,
+  html:not([data-motion="off"]) .unit-toggle button:active { transform: none; }
+  html:not([data-motion="off"]) .epoch-chip:hover { transform: translateY(-1px); }
+  html:not([data-motion="off"]) .epoch-chip:active { transform: translateY(0); }
+  html:not([data-motion="off"]) .field-card:hover .field-thumb img { transform: scale(1.03); }
+  html:not([data-motion="off"]) .viewer:hover { border-color: rgba(217, 245, 110, .42); }
+  html:not([data-motion="off"]) .analysis-selection label:hover { transform: translateX(1px); }
 }
 
 html[data-motion="lite"] .cosmos-meteor,
