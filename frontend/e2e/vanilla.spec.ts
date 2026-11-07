@@ -274,3 +274,39 @@ test('sin JavaScript el título y la escena permanecen visibles', async ({ brows
     await fitsOnScreen(page)
   } finally { await context.close() }
 })
+
+test('la profundidad y el parallax solo se activan en full con puntero preciso', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await expect(page.locator('.cosmos-stars-depth')).toBeVisible()
+  await page.waitForTimeout(1200)
+  const entrance = await page.locator('.hero').evaluate(node => ({
+    label: Number(getComputedStyle(node.querySelector('.cosmos-label')!).opacity),
+    running: node.getAnimations({ subtree: true }).filter(animation =>
+      animation.playState === 'running' && animation.effect?.getTiming().iterations === 1).length,
+  }))
+  expect(entrance.label).toBe(1)
+  expect(entrance.running).toBe(0)
+  const fine = await page.evaluate(() => matchMedia('(hover: hover) and (pointer: fine)').matches)
+  const bounds = await page.locator('.hero-cosmos').boundingBox()
+  expect(bounds).not.toBeNull()
+  await page.mouse.move(bounds!.x + bounds!.width * .9, bounds!.y + bounds!.height * .8)
+  const offset = await page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))
+  if (fine) {
+    await expect.poll(() => page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).not.toBe('')
+    const x = await page.locator('.hero-cosmos').evaluate(node => parseFloat(node.style.getPropertyValue('--px')))
+    expect(Math.abs(x)).toBeGreaterThan(1)
+    expect(Math.abs(x)).toBeLessThanOrEqual(3)
+    await page.locator('.brand').hover()
+    await expect.poll(() => page.locator('.brand-mark').evaluate(node => Math.round(Math.atan2(
+      new DOMMatrixReadOnly(getComputedStyle(node).transform).b,
+      new DOMMatrixReadOnly(getComputedStyle(node).transform).a) * 180 / Math.PI))).toBe(-13)
+  } else expect(offset).toBe('')
+  await page.mouse.move(0, 0)
+  await expect.poll(() => page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).toBe('')
+  await page.goto('/?motion=lite&preset=barnard')
+  await ready(page)
+  await expect(page.locator('.cosmos-stars-depth')).toBeHidden()
+  expect(await page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).toBe('')
+})

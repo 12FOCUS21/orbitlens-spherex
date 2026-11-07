@@ -4,23 +4,42 @@ const media = [
   '(hover: none) and (pointer: coarse)',
 ].map((query) => matchMedia(query));
 const [reduced, narrow, coarse] = media;
-const network = navigator.connection;
-let ceiling = 2, probing = false;
+const net = navigator.connection;
+let cap = 2, probing = false;
 
 function update() {
-  const lite = narrow.matches || coarse.matches || network?.saveData ||
+  const lite = narrow.matches || coarse.matches || net?.saveData ||
     navigator.hardwareConcurrency <= 4 || navigator.deviceMemory <= 4;
   root.dataset.motion = reduced.matches ? 'off' : root.dataset.motionForce ||
-    ['off', 'lite', 'full'][Math.min(lite ? 1 : 2, ceiling)];
+    ['off', 'lite', 'full'][Math.min(lite ? 1 : 2, cap)];
   root.dataset.pageHidden = String(document.hidden);
 }
 
 for (const query of media) query.addEventListener('change', update);
-network?.addEventListener?.('change', update);
+net?.addEventListener?.('change', update);
 document.addEventListener('visibilitychange', () => { update(); if (!document.hidden) probe(); });
 update();
 
 const scene = document.querySelector('.hero-cosmos');
+const hero = scene?.parentElement;
+const fine = matchMedia('(hover: hover) and (pointer: fine)');
+let raf = 0;
+hero?.addEventListener('pointermove', ({ clientX, clientY }) => {
+  if (root.dataset.motion !== 'full' || !fine.matches || hero.hasAttribute('data-motion-paused') || raf) return;
+  raf = requestAnimationFrame(() => {
+    const box = scene.getBoundingClientRect();
+    const shift = (value) => `${Math.max(-3, Math.min(3, value)).toFixed(1)}px`;
+    scene.style.setProperty('--px', shift(6 * (clientX - box.left) / box.width - 3));
+    scene.style.setProperty('--py', shift(6 * (clientY - box.top) / box.height - 3));
+    raf = 0;
+  });
+}, { passive: true });
+hero?.addEventListener('pointerleave', () => {
+  cancelAnimationFrame(raf);
+  raf = 0;
+  scene.style.removeProperty('--px');
+  scene.style.removeProperty('--py');
+});
 if ('IntersectionObserver' in window) {
   const target = (node) => node === scene ? scene.parentElement : node;
   const observer = new IntersectionObserver((entries) => {
@@ -44,7 +63,7 @@ function probe() {
     if (previous) { total += now - previous; count++; }
     if (count === 20) {
       const average = total / count;
-      ceiling = Math.min(ceiling, average > 40 ? 0 : average > 24 ? 1 : 2);
+      cap = Math.min(cap, average > 40 ? 0 : average > 24 ? 1 : 2);
       update();
       return;
     }
@@ -54,4 +73,4 @@ function probe() {
   requestAnimationFrame(sample);
 }
 
-requestAnimationFrame(probe);
+requestAnimationFrame(() => setTimeout(probe, 1200));
