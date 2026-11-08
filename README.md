@@ -2,7 +2,7 @@
 
 OrbitLens permite comparar observaciones infrarrojas de un mismo campo y revisar qué píxeles admiten una comparación. Incluye cinco campos de demostración de 12 imágenes, búsqueda por nombre o coordenadas, reproducción temporal, diferencia A−B, apilado y curva del píxel central.
 
-[Ver la demo pública](https://orbitlens-spherex.onrender.com) · [Pruebas y pasos de entrega](ENTREGA.md) · [Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
+[Ver la demo pública](https://orbitlens-spherex.onrender.com) · [Pruebas y pasos de entrega](ENTREGA.md) · [Capturas finales](docs/capturas/) · [Reto oficial](https://www.spaceappschallenge.org/2026/challenges/planet-x-and-spherex/?tab=details)
 
 La interfaz de trabajo en `web/` conserva la interacción visual vanilla y adapta las funciones del MVP: enlaces al campo, selección por longitud de onda, desglose de máscaras y catálogos del mismo campo en Aladin Lite.
 Los enlaces conservan las coordenadas y opciones exactas del resultado, sin volver
@@ -12,13 +12,15 @@ Pruebas y revisión manual: [STAGE6_QA.md](STAGE6_QA.md).
 
 ## Estado
 
-**Verificación local de esta rama (2026-11-06): 77 pruebas Python pasan**, con
-avisos conocidos; `verify_demo.py` y `verify_release.py` comprueban los artefactos
-reales. Los módulos vanilla pasan `node --check`; 10 pruebas Node cubren enlaces y
-orden espectral (`npm.cmd --prefix frontend test`). La regresión actual de la web
-está en `npm.cmd --prefix frontend run test:web` (20/20 casos correctos en
-Playwright/Edge headless, escritorio y 390 px). `frontend/` conserva la versión React y su suite histórica,
-pero no participa en el despliegue ni en la interfaz actual.
+**Verificación local de esta rama (2026-11-07): 77 pruebas Python y 44 subtests
+pasan**, con avisos conocidos; `verify_demo.py` y `verify_release.py` comprueban
+los artefactos reales. Los módulos vanilla pasan `node --check`; 10 pruebas Node
+cubren enlaces y orden espectral (`npm.cmd --prefix frontend test`). La regresión
+actual de la web está en `npm.cmd --prefix frontend run test:web` (**34/34 casos
+correctos en Playwright/Edge headless**, escritorio y 390 px), incluidos los
+niveles de movimiento, la pausa por visibilidad, el parallax y las
+microinteracciones del visor. `frontend/` conserva la versión React y su suite
+histórica, pero no participa en el despliegue ni en la interfaz actual.
 **MVP exploratorio aceptado funcionalmente:** el usuario confirmó las pruebas
 manuales operativas de cuotas/proxy, CDS y móvil. No se atribuyen a la suite E2E
 ni constituyen una auditoría independiente; detalle en DEPLOYMENT.md.
@@ -55,6 +57,21 @@ La herramienta de navegador del agente falló al leer la página; no se atribuye
 una verificación visual automatizada. La regresión ampliada y móvil sigue
 documentada en STAGE3_QA.md. La versión actual usa `web/` servido por FastAPI;
 la publicación anterior se describe en DEPLOYMENT.md.
+
+## Movimiento y accesibilidad
+
+`web/motion.js` (≤3 KB) fija `data-motion="full|lite|off"` antes del primer
+pintado. `off` se aplica con `prefers-reduced-motion: reduce`; `lite` en pantallas
+de hasta 760 px, puntero grueso, `saveData` o equipos limitados; `full` en el
+resto. `?motion=full|lite|off` permite forzar un nivel en pruebas y demos, salvo
+que el sistema pida reducción. En `off` no corre ninguna animación y las órbitas
+conservan sus ángulos estáticos (−24° y 55°); en `lite` se eliminan los
+desenfoques y se reduce la escena. Presupuesto medido: 6 animaciones infinitas en
+`full` (límite 8), 3 en `lite` (límite 4) y 0 en `off`. La escena se pausa fuera
+de pantalla o con la pestaña oculta. Con CPU 4× el p95 se mantiene en torno a
+16,8–16,9 ms sin tareas largas y el CLS queda por debajo de 0,005; el parallax de
+la portada solo se activa en `full` con puntero fino. Los estados visuales
+finales están en [docs/capturas](docs/capturas/).
 
 ## Ejecutar la interfaz de trabajo
 

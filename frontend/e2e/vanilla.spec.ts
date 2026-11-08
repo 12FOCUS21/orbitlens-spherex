@@ -201,3 +201,141 @@ test('diez pestañas abren Barnard desde caché sin errores', async ({ context }
     }))
   } finally { await Promise.all(pages.map(page => page.close())) }
 })
+
+const runningInfinite = () => document.getAnimations().filter(animation =>
+  animation.playState === 'running' && animation.effect?.getTiming().iterations === Infinity).length
+
+test('reduce elimina el movimiento y conserva ambas órbitas inclinadas incluso al cambiar en vivo', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off')
+  const snapshot = await page.evaluate(() => {
+    const angle = (selector: string) => {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(document.querySelector(selector)!).transform)
+      return Math.atan2(matrix.b, matrix.a) * 180 / Math.PI
+    }
+    return { outer: angle('.cosmos-orbit-outer'), inner: angle('.cosmos-orbit-inner'), running: document.getAnimations().filter(animation => animation.playState === 'running').length }
+  })
+  expect(snapshot.outer).toBeCloseTo(-24, 0)
+  expect(snapshot.inner).toBeCloseTo(55, 0)
+  expect(snapshot.running).toBe(0)
+  await page.locator('#blink').click()
+  await expect(page.locator('#blink')).toHaveAttribute('aria-pressed', 'true')
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full')
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'off')
+  await expect(page.locator('#blink')).toHaveAttribute('aria-pressed', 'true')
+  expect(await page.evaluate(runningInfinite)).toBe(0)
+  await page.locator('#blink').click()
+})
+
+test('lite a 390 px respeta el presupuesto, elimina desenfoques y no desborda', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/?motion=lite&preset=barnard')
+  await ready(page)
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'lite')
+  expect(await page.evaluate(runningInfinite)).toBeLessThanOrEqual(4)
+  expect(await page.locator('.site-header').evaluate(node => getComputedStyle(node).backdropFilter)).toBe('none')
+  for (const viewport of [{ width: 360, height: 800 }, { width: 390, height: 844 },
+    { width: 414, height: 896 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport)
+    await fitsOnScreen(page)
+  }
+})
+
+test('full en escritorio no supera ocho animaciones infinitas', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await expect(page.locator('html')).toHaveAttribute('data-motion', 'full')
+  expect(await page.evaluate(runningInfinite)).toBeLessThanOrEqual(8)
+})
+
+test('la escena orbital se pausa al quedar fuera de pantalla', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await page.locator('#campos').scrollIntoViewIfNeeded()
+  await expect.poll(() => page.evaluate(() => document.querySelector('.hero')!.getAnimations({ subtree: true }).filter(animation =>
+    animation.playState === 'running' && animation.effect?.getTiming().iterations === Infinity).length)).toBe(0)
+  await expect(page.locator('.hero')).toHaveAttribute('data-motion-paused', '')
+})
+
+test('sin JavaScript el título y la escena permanecen visibles', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } })
+  try {
+    const page = await context.newPage()
+    await page.goto('/')
+    await expect(page.locator('#hero-title')).toBeVisible()
+    await expect(page.locator('.hero-cosmos')).toBeVisible()
+    await expect(page.locator('html')).toHaveAttribute('data-motion', 'off')
+    await fitsOnScreen(page)
+  } finally { await context.close() }
+})
+
+test('la profundidad y el parallax solo se activan en full con puntero preciso', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await expect(page.locator('.cosmos-stars-depth')).toBeVisible()
+  await page.waitForTimeout(1200)
+  const entrance = await page.locator('.hero').evaluate(node => ({
+    label: Number(getComputedStyle(node.querySelector('.cosmos-label')!).opacity),
+    running: node.getAnimations({ subtree: true }).filter(animation =>
+      animation.playState === 'running' && animation.effect?.getTiming().iterations === 1).length,
+  }))
+  expect(entrance.label).toBe(1)
+  expect(entrance.running).toBe(0)
+  const fine = await page.evaluate(() => matchMedia('(hover: hover) and (pointer: fine)').matches)
+  const bounds = await page.locator('.hero-cosmos').boundingBox()
+  expect(bounds).not.toBeNull()
+  await page.mouse.move(bounds!.x + bounds!.width * .9, bounds!.y + bounds!.height * .8)
+  const offset = await page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))
+  if (fine) {
+    await expect.poll(() => page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).not.toBe('')
+    const x = await page.locator('.hero-cosmos').evaluate(node => parseFloat(node.style.getPropertyValue('--px')))
+    expect(Math.abs(x)).toBeGreaterThan(1)
+    expect(Math.abs(x)).toBeLessThanOrEqual(3)
+    await page.locator('.brand').hover()
+    await expect.poll(() => page.locator('.brand-mark').evaluate(node => Math.round(Math.atan2(
+      new DOMMatrixReadOnly(getComputedStyle(node).transform).b,
+      new DOMMatrixReadOnly(getComputedStyle(node).transform).a) * 180 / Math.PI))).toBe(-13)
+  } else expect(offset).toBe('')
+  await page.mouse.move(0, 0)
+  await expect.poll(() => page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).toBe('')
+  await page.goto('/?motion=lite&preset=barnard')
+  await ready(page)
+  await expect(page.locator('.cosmos-stars-depth')).toBeHidden()
+  expect(await page.locator('.hero-cosmos').evaluate(node => node.style.getPropertyValue('--px'))).toBe('')
+})
+
+test('los controles del visor responden con movimiento finito y se apagan en off', async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 860 })
+  await page.goto('/?motion=full&preset=barnard')
+  await ready(page)
+  await page.locator('#compare').click()
+  const chip = page.locator('#epoch-b')
+  await expect(chip).toHaveAttribute('aria-pressed', 'true')
+  expect(await chip.evaluate(node => node.getAnimations().some(animation =>
+    animation.effect?.getTiming().iterations === 1))).toBe(true)
+  await expect.poll(() => chip.evaluate(node => node.getAnimations().length)).toBe(0)
+  const play = page.locator('#play')
+  await play.hover()
+  const fine = await page.evaluate(() => matchMedia('(hover: hover) and (pointer: fine)').matches)
+  if (fine) {
+    await expect.poll(() => play.evaluate(node =>
+      Math.round(new DOMMatrixReadOnly(getComputedStyle(node).transform).f))).toBe(-1)
+  } else expect(await play.evaluate(node => getComputedStyle(node).transform)).toBe('none')
+  await page.mouse.move(0, 0)
+  await page.goto('/?motion=off&preset=barnard')
+  await ready(page)
+  await page.locator('#play').hover()
+  const still = await page.locator('#play').evaluate(node => ({
+    transform: getComputedStyle(node).transform,
+    animations: node.getAnimations().length,
+  }))
+  expect(still.transform).toBe('none')
+  expect(still.animations).toBe(0)
+})

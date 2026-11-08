@@ -5,9 +5,16 @@
 - Interfaz de trabajo: `web/` vanilla, servida por FastAPI. Integra el visor de
   ayer con las funciones de `main`: análisis, selector espectral, enlaces exactos,
   máscaras y vista externa Gaia/AllWISE. `frontend/` conserva la versión React
-  histórica; Render ya no la compila. Validación local: 77 pruebas Python,
-  10 pruebas Node, `verify_demo.py`, `verify_release.py` y regresión Edge de
-  `npm.cmd --prefix frontend run test:web`.
+  histórica; Render ya no la compila. Validación local: 77 pruebas Python y 44
+  subtests, 10 pruebas Node, `verify_demo.py`, `verify_release.py` y regresión
+  Edge de `npm.cmd --prefix frontend run test:web` (34 casos).
+
+- Animaciones (fases 0–3): sistema `data-motion="full|lite|off"` en
+  `web/motion.js` (≤3 KB) con `prefers-reduced-motion`, pausa fuera de pantalla y
+  con pestaña oculta, presupuestos 8/4/0 y fallback estático con órbitas −24°/55°.
+  Portada con profundidad, terminador y parallax sutil; resto de la interfaz con
+  microinteracciones finitas. Commits `ffaef`, `c3fad`, `c5fde` y `9f869`.
+  Con CPU 4×: p95 ≈16,8–16,9 ms, sin tareas largas y CLS <0,005.
 
 - 77 pruebas Python pasan, avisos conocidos; la versión React histórica compilaba con TypeScript/Vite.
 - Etapa 6: enlaces y orden espectral tienen 10 pruebas frontend con runner nativo
@@ -17,9 +24,11 @@
 - Etapa 7: smoke HTTP local reproducible en `verify_release.py`, con diez visitas
   concurrentes, artefactos completos, dos campos repetidos y cuota local. Matriz
   de 15 casos en STAGE7_QA.md; los tres ensayos de presentación siguen pendientes.
-- Regresión funcional local: 20 casos E2E correctos en Edge headless, escritorio
-  y viewport móvil de 390 px, incluidos diez tabs reales. El usuario confirmó las
-  pruebas operativas manuales de cuotas/proxy, CDS y móvil; no se atribuyen a E2E.
+- Regresión funcional local: 34 casos E2E correctos en Edge headless, escritorio
+  y viewport móvil de 390 px, incluidos diez tabs reales, presupuestos de
+  movimiento, pausa por visibilidad, parallax y microinteracciones. El usuario
+  confirmó las pruebas operativas manuales de cuotas/proxy, CDS y móvil; no se
+  atribuyen a E2E.
 - Lectura pública comprobada el 2026-11-06: salud y cinco presets 200; JS/CSS
   coinciden con el build local; diez PNG/FITS muestreados y cinco GIF/target.json
   accesibles. El agente no hizo POST de producción; aceptación manual posterior

@@ -3,7 +3,7 @@ import { wavelengthOrder } from './measurements.js';
 
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 12;
-const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 export class Player {
   constructor({ onChange, onHelp, onNotice } = {}) {
@@ -230,6 +230,7 @@ export class Player {
         this.stopBlink();
       }
     });
+    reduceMotion.addEventListener('change', () => { if (this.blinking) this.setBlink(true); });
   }
 
   get hasFrames() {
@@ -484,7 +485,7 @@ export class Player {
     this.blinkTimer = setInterval(() => {
       this.showB = !this.showB;
       this.render();
-    }, reduceMotion ? 1100 : 520);
+    }, reduceMotion.matches ? 1100 : 520);
     this.render();
   }
 
